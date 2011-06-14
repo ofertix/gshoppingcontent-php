@@ -253,11 +253,7 @@ class GSC_Client
 } 
 
 
-$fn = "t.xml";
-$f = fopen($fn, 'r');
-$data = fread($f, 1024);
 
-//print_r($r);
 
 
 /**
@@ -1359,36 +1355,4 @@ class GSC_ProductList extends _GSC_AtomElement
 } // END class 
 
 
-$fn = "t.xml";
-$f = fopen($fn, 'r');
-$data = fread($f, 1024);
-
-//$p = _GSC_AtomParser::parse($data);
-
-$p = new GSC_Product();
-print_r($p->getTitle());
-
-$p->setTitle('banana');
-$p->addShipping('US', 'ca', '20.0', 'usd', 'shipme');
-$p->addTax('US', 'ca', '3.0', 'false');
-$p->clearAllShippings();
-$p->clearAllTaxes();
-$p->setPrice(100, 'usd');
-$p->setTargetCountry('GB');
-$p->setBatchOperation('INSERT');
-$p->setProductLink('http://oogl.com');
-$p->setCondition('used');
-$p->addImageLink('http://banana');
-$p->setAdult('fale');
-$p->setBatchOperation('INSERT');
-$p->addRequiredDestination('bananana');
-
-$l = new GSC_ProductList();
-$l->addProduct($p);
-
-$merchantId = '7842698';
-$a = new GSC_Client($merchantId);
-$a->login('aafshar@gmail.com', 'bismill4h');
-$r = $a->batch($l);
-print_r($r);
 ?>
