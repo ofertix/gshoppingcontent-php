@@ -1,0 +1,22 @@
+<refentry id="{@id}">
+ <refnamediv>
+  <refname>GShoppingContent User Guide</refname>
+  <refpurpose>To introduce the GShoppingContent library, get you started, and
+  show you where to get more information.</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <author>
+   Ali Afshar
+   <authorblurb>
+    {@link mailto:afshar@google.com Email}
+   </authorblurb>
+  </author>
+ </refsynopsisdiv>
+ {@toc}
+ <refsect1 id="{@id intro}">
+  <title>User Guide</title>
+  <para>
+   This will be the User Guide for My app. 
+  </para>
+ </refsect1>
+</refentry>
