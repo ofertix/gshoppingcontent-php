@@ -178,21 +178,24 @@ class _GSC_Http
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         return $ch;
     }
-} 
+}
 
 
 /**
- * ClientLogin
+ * Handles making ClientLogin requests to authenticate and authorize.
  *
  * @package GShoppingContent
  * @version 1
  **/
-class _GSC_ClientLogin 
+class _GSC_ClientLogin
 {
     /**
-     * undocumented function
+     * Log in to ClientLogin.
      *
-     * @return void
+     * @static
+     * @param string $email Google account email address.
+     * @param string $password Google account password.
+     * @return string The Auth token from ClientLogin.
      * @author afshar@google.com
      **/
     public static function login($email, $password)
@@ -204,9 +207,7 @@ class _GSC_ClientLogin
             'source' => USER_AGENT,
             'accountType' => 'GOOGLE'
         );
-        print_r($fields);
         $resp = _GSC_Http::postForm(CLIENTLOGIN_URI, $fields);
-        print_r($resp);
         $tokens = array();
         foreach (explode("\n", $resp->body) as $line) {
             $line = chop($line);
@@ -215,14 +216,13 @@ class _GSC_ClientLogin
                 $tokens[$key] = $val;
             }
         }
-        print_r($tokens);
         return $tokens['Auth'];
     }
+}
 
-} 
 
 /**
- * uclass
+ * Base class for client errors.
  *
  * @packaged default
  * @version 1
@@ -231,8 +231,9 @@ class _GSC_ClientLogin
  **/
 class _GSC_ClientError extends Exception { }
 
+
 /**
- * GSC_Client
+ * Client for making requests to the Google Content API for Shopping.
  *
  * @package GShoppingContent
  * @version 1
@@ -241,46 +242,67 @@ class _GSC_ClientError extends Exception { }
  **/
 class GSC_Client
 {
-    private $clientLogin;
-    private $token;
-
 
     /**
-     * undocumented function
+     * Authorization token for the user.
      *
-     * @return void
+     * @var string
+     **/
+    private $token;
+
+    /**
+     * Create a new client for the merchant.
+     *
+     * @return GSC_Client The newliy created client.
      * @author afshar@google.com
      **/
     public function __construct($merchantId)
     {
         $this->merchantId = $merchantId;
-        $this->clientLogin = new _GSC_ClientLogin();
     }
 
+    /**
+     * Check that this client has been authorized and has a token.
+     *
+     * @throws _GSC_ClientError if there is no token.
+     * @return void
+     */
     private function checkToken() {
         if ($this->token == null) {
             throw new _GSC_ClientError('Client is not authenticated.');
         }
     }
 
+    /**
+     * Log in with ClientLogin and set the auth token.
+     *
+     * @param string $email Google account email address.
+     * @param string $password Google account password.
+     * @return void
+     **/
     public function login($email, $password) {
-        $this->token = $this->clientLogin->login($email, $password);
+        $this->token = ClientLogin::login($email, $password);
     }
 
-    public function insert($merchantId, $product, $token) {
-        $uri = BASE . $merchantId . '/items/products/schema/';
-        print_r('GoogleLogin auth=' . $token);
-        $r = _GSC_Http::post($uri, $product, 'GoogleLogin auth=' . $token);
-        return $r;
-    }
-
-    public function update($merchantId, $product, $token) {
+    /**
+     * Insert a product.
+     *
+     * @param GSC_Product $product The product to insert.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function insert($product) {
+        return _GSC_Http::post(
+            $this->getFeedUri(),
+            $product->toXML(),
+            $this->getTokenHeader()
+        );
     }
 
     /**
      * Make a batch request.
      *
-     * @return GSC_ProductList the returned results from the batch.
+     * @param GSC_ProductList $products The list of products to batch.
+     * @return GSC_ProductList The returned results from the batch.
      **/
     public function batch($products) {
         return _GSC_Http::post(
@@ -290,20 +312,35 @@ class GSC_Client
         );
     }
 
+    /**
+     * Create a URI for the feed for this merchant.
+     *
+     * @return string The feed URI.
+     **/
     public function getFeedUri() {
         return BASE . $this->merchantId . '/items/products/schema/';
     }
 
+    /**
+     * Create a URI for the batch feed for this merchant.
+     *
+     * @return string The batch feed URI.
+     **/
     public function getBatchUri() {
         return $this->getFeedUri() . 'batch';
     }
 
+    /**
+     * Create a header from the authorization token.
+     *
+     * @return string The authorization header.
+     **/
     public function getTokenHeader() {
         $this->checkToken();
         return 'GoogleLogin auth=' . $this->token; 
     }
 
-} 
+}
 
 
 /**
@@ -355,7 +392,7 @@ class _GSC_Ns {
 class _GSC_Tags {
     /**
      * The <batch:operation> tag.
-     * 
+     *
      * @var array
      * @see GSC_Product::setBatchOperation(), GSC_Product::getBatchOperation()
      **/
@@ -441,6 +478,13 @@ class _GSC_Tags {
  * @author afshar@google.com
  **/
 class _GSC_AtomParser {
+
+    /**
+     * Parse some XML into our data model.
+     *
+     * @param string $xml The XML to parse.
+     * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     **/
     public static function parse($xml) {
         $doc = new DOMDocument();
         $doc->preserveWhiteSpace = false;
@@ -457,7 +501,7 @@ class _GSC_AtomParser {
         return $doc;
     }
 
-} 
+}
 
 
 /**
@@ -748,7 +792,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getExpirationDate() {
         return $this->getFirstValue(_GSC_Tags::$expiration_date);
     }
-    
+
     /**
      * Set the Expiration Date for the product.
      *
@@ -758,7 +802,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setExpirationDate($date) {
         return $this->setFirstValue(_GSC_Tags::$expiration_date, $date);
     }
-    
+
     /**
      * Get the link for the product.
      *
@@ -839,7 +883,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getAdwordsLabels() {
         return $this->getFirstValue(_GSC_Tags::$adwords_labels);
     }
-    
+
     /**
      * Set the Adwords Labels of the product.
      *
@@ -849,7 +893,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setAdwordsLabels($adwords_labels) {
         return $this->setFirstValue(_GSC_Tags::$adwords_labels, $adwords_labels);
     }
-    
+
     /**
      * Get the Adwords Query Parameter of the product.
      *
@@ -858,7 +902,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getAdwordsQueryparam() {
         return $this->getFirstValue(_GSC_Tags::$adwords_queryparam);
     }
-    
+
     /**
      * Set the Adwords Query Parameter of the product.
      *
@@ -877,7 +921,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getAdwordsRedirect() {
         return $this->getFirstValue(_GSC_Tags::$adwords_redirect);
     }
-    
+
     /**
      * Set the Adwords Redirect of the product.
      *
@@ -887,7 +931,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setAdwordsRedirect($adwords_redirect) {
         return $this->setFirstValue(_GSC_Tags::$adwords_redirect, $adwords_redirect);
     }
-    
+
     /**
      * Get the author of the product.
      *
@@ -896,7 +940,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getAuthor() {
         return $this->getFirstValue(_GSC_Tags::$author);
     }
-    
+
     /**
      * Set the author of the product.
      *
@@ -915,7 +959,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getBrand() {
         return $this->getFirstValue(_GSC_Tags::$brand);
     }
-    
+
     /**
      * Set the brand of the product.
      *
@@ -934,7 +978,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getColor() {
         return $this->getFirstValue(_GSC_Tags::$color);
     }
-    
+
     /**
      * Set the color of the product.
      *
@@ -944,7 +988,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setColor($color) {
         return $this->setFirstValue(_GSC_Tags::$color, $color);
     }
-    
+
     /**
      * Get the edition of the product.
      *
@@ -953,7 +997,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getEdition() {
         return $this->getFirstValue(_GSC_Tags::$edition);
     }
-    
+
     /**
      * Set the edition of the product.
      *
@@ -972,7 +1016,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getFeaturedProduct() {
         return $this->getFirstValue(_GSC_Tags::$featured_product);
     }
-    
+
     /**
      * Set the featured status of the product.
      *
@@ -982,7 +1026,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setFeaturedProduct($featured_product) {
         return $this->setFirstValue(_GSC_Tags::$featured_product, $featured_product);
     }
-    
+
     /**
      * Get the genre of the product.
      *
@@ -991,7 +1035,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getGenre() {
         return $this->getFirstValue(_GSC_Tags::$genre);
     }
-    
+
     /**
      * Set the genre of the product.
      *
@@ -1001,7 +1045,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setGenre($genre) {
         return $this->setFirstValue(_GSC_Tags::$genre, $genre);
     }
-    
+
     /**
      * Get the manufacturer of the product.
      *
@@ -1010,7 +1054,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getManufacturer() {
         return $this->getFirstValue(_GSC_Tags::$manufacturer);
     }
-    
+
     /**
      * Set the manufacturer of the product.
      *
@@ -1020,7 +1064,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setManufacturer($manufacturer) {
         return $this->setFirstValue(_GSC_Tags::$manufacturer, $manufacturer);
     }
-    
+
     /**
      * Get the manufacturer's part number.
      *
@@ -1029,7 +1073,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getMpn() {
         return $this->getFirstValue(_GSC_Tags::$mpn);
     }
-    
+
     /**
      * Set the manufacturer's part number.
      *
@@ -1039,7 +1083,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setMpn($mpn) {
         return $this->setFirstValue(_GSC_Tags::$mpn, $mpn);
     }
-    
+
     /**
      * Get the online only status of the product.
      *
@@ -1048,7 +1092,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getOnlineOnly() {
         return $this->getFirstValue(_GSC_Tags::$online_only);
     }
-    
+
     /**
      * Set the online only status of the product.
      *
@@ -1058,7 +1102,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setOnlineOnly($online_only) {
         return $this->setFirstValue(_GSC_Tags::$online_only, $online_only);
     }
-    
+
     /**
      * Get the GTIN of the product.
      *
@@ -1067,7 +1111,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getGtin() {
         return $this->getFirstValue(_GSC_Tags::$gtin);
     }
-    
+
     /**
      * Set the GTIN of the product.
      *
@@ -1077,7 +1121,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setGtin($gtin) {
         return $this->setFirstValue(_GSC_Tags::$gtin, $gtin);
     }
-    
+
     /**
      * Get the product type.
      *
@@ -1086,7 +1130,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getProductType() {
         return $this->getFirstValue(_GSC_Tags::$product_type);
     }
-    
+
     /**
      * Set the product type.
      *
@@ -1096,7 +1140,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setProductType($product_type) {
         return $this->setFirstValue(_GSC_Tags::$product_type, $product_type);
     }
-    
+
     /**
      * Get the product review average.
      *
@@ -1105,7 +1149,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getProductReviewAverage() {
         return $this->getFirstValue(_GSC_Tags::$product_review_average);
     }
-    
+
     /**
      * Set the product review average.
      *
@@ -1115,7 +1159,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setProductReviewAverage($product_review_average) {
         return $this->setFirstValue(_GSC_Tags::$product_review_average, $product_review_average);
     }
-    
+
     /**
      * Get the product review count.
      *
@@ -1124,7 +1168,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getProductReviewCount() {
         return $this->getFirstValue(_GSC_Tags::$product_review_count);
     }
-    
+
     /**
      * Set the product review count.
      *
@@ -1134,7 +1178,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setProductReviewCount($product_review_count) {
         return $this->setFirstValue(_GSC_Tags::$product_review_count, $product_review_count);
     }
-    
+
     /**
      * Get the quantity (inventory) of the product.
      *
@@ -1143,7 +1187,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getQuantity() {
         return $this->getFirstValue(_GSC_Tags::$quantity);
     }
-    
+
     /**
      * Set the quantity (inventory) of the product.
      *
@@ -1162,7 +1206,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getShippingWeight() {
         return $this->getFirstValue(_GSC_Tags::$shipping_weight);
     }
-    
+
     /**
      * Set the shipping weight of the product.
      *
@@ -1172,7 +1216,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function setShippingWeight($shipping_weight) {
         return $this->setFirstValue(_GSC_Tags::$shipping_weight, $shipping_weight);
     }
-    
+
     /**
      * Get the year of the product.
      *
@@ -1181,7 +1225,7 @@ class GSC_Product extends _GSC_AtomElement {
     public function getYear() {
         return $this->getFirstValue(_GSC_Tags::$year);
     }
-    
+
     /**
      * Set the year of the product.
      *
@@ -1318,7 +1362,7 @@ class GSC_Product extends _GSC_AtomElement {
         $this->model->appendChild($el);
         return $el;
     }
-    
+
     /**
      * Clear all the features from this product.
      *
@@ -1339,7 +1383,7 @@ class GSC_Product extends _GSC_AtomElement {
         $this->model->appendChild($el);
         return $el;
     }
-    
+
     /**
      * Clear all the sizes from this product.
      *
@@ -1348,7 +1392,7 @@ class GSC_Product extends _GSC_AtomElement {
     function clearAllSizes() {
         $this->deleteAll(_GSC_Tags::$size);
     }
-     
+
     /**
      * Get the batch operation type of the product.
      *
@@ -1389,7 +1433,7 @@ class GSC_Product extends _GSC_AtomElement {
         return $this->doc->documentElement;
     }
 
-} 
+}
 
 
 /**
@@ -1401,10 +1445,13 @@ class GSC_Product extends _GSC_AtomElement {
  * @author afshar@google.com
  **/
 class GSC_ProductList extends _GSC_AtomElement {
-    
+
     /**
-     * ufunction
+     * Add a product to this list.
      *
+     * This method imports the DOM elements.
+     *
+     * @param GSC_Product $product The product to add to this list.
      * @return void
      **/
     public function addProduct($product) {
@@ -1415,6 +1462,11 @@ class GSC_ProductList extends _GSC_AtomElement {
     public function getProducts() {
     }
 
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
     public function createModel() {
         $s = '<feed '.
              'xmlns="http://www.w3.org/2005/Atom" '.
@@ -1426,7 +1478,7 @@ class GSC_ProductList extends _GSC_AtomElement {
         $this->doc->loadXML($s);
         return $this->doc->documentElement;
     }
-} 
+}
 
 
 ?>

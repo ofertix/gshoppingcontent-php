@@ -38,11 +38,11 @@ php file that can be dropped into any application for convenience.
 <para>Once you have copied the source module into your application, you can use
 it with three principal classes:
 
-<itemizedlist>
-    <listitem>GSC_Client</listitem>
-    <listitem>GSC_Product</listitem>
-    <listitem>GSC_ProductList</listitem>
-</itemizedlist>
+<simplelist>
+  <listitem>{@link GSC_Client}</listitem>
+  <listitem>{@link GSC_Product}</listitem>
+  <listitem>{@link GSC_ProductList}</listitem>
+</simplelist>
 
 </para>
 
@@ -53,8 +53,8 @@ the provided data.
 </refsect1>
 
 <refsect1 id="{@id example}">
-<title>First example: Inserting Products</title>
-<programlisting role="tutorial">
+<title>First example: Inserting a Product</title>
+<code role="tutorial" language="php">
 <![CDATA[
 // a client that will make requests for us passing a merchant ID
 $client = new GSC_Client('0000000');
@@ -69,16 +69,16 @@ $product->setPrice('20.0', 'USD');
 // insert the product
 $client->insert($product);
 ]]>
-</programlisting>
+</code>
 </refsect1>
 
 <refsect1 id="{@id wherenow}">
 <title>Where now?</title>
 
 <para>
-The library API is pretty well documented, so please take a look there. The API
+The API
 is simple, so I don't expect that once you are up and running you will have any
-problems.
+problems. Please refer to the API documentation for details: {@link GShoppingContent.php}
 </para>
 
 </refsect1>
