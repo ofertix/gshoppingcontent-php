@@ -9,14 +9,13 @@ distzip = $(distdir)/$(name)
 docsout = docs/html
 
 doc:
-	rm -rf docs/html
+	rm -rf $(docsout)
 	~/tmp/PhpDocumentor/phpdoc -t $(docsout) \
-        -f GShoppingContent.php \
-        -d .,docs \
+        -d . \
         -i tests/ \
         -s on \
         -o HTML:Smarty:PHP
-	mv docs/media/background.pn{,g}
+	mv $(docsout)/media/background.pn{,g}
 
 test:
 	phpunit --colors tests/
@@ -24,5 +23,6 @@ test:
 sdist : doc
 	rm -rf build
 	mkdir -p dist build $(zipdir)
-	cp -R *.php tests/ docs/ tutorials/ LICENSE README $(zipdir)
+	cp -R *.php tests/ docs/ LICENSE README $(zipdir)
 	cd build && zip -r ../$(distzip) $(name)
+	rm -rf doc
