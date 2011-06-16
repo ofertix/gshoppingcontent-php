@@ -1,3 +1,5 @@
 \.pn$
 \.cs$
 docs/
+dist/
+build/
