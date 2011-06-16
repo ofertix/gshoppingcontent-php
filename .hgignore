@@ -1,5 +1,5 @@
 \.pn$
 \.cs$
-docs/
+docs/html
 dist/
 build/

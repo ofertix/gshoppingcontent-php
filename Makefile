@@ -1,15 +1,21 @@
 # Makefile for GShoppingContent
 
-version = 1
+version = ALPHA
 name = gshoppingcontent-php-$(version)
 builddir = build
 distdir = dist
 zipdir = $(builddir)/$(name)
 distzip = $(distdir)/$(name)
+docsout = docs/html
 
 doc:
-	rm -rf docs
-	~/tmp/PhpDocumentor/phpdoc -t docs/ -f GShoppingContent.php -d . -s on -o HTML:Smarty:PHP
+	rm -rf docs/html
+	~/tmp/PhpDocumentor/phpdoc -t $(docsout) \
+        -f GShoppingContent.php \
+        -d .,docs \
+        -i tests/ \
+        -s on \
+        -o HTML:Smarty:PHP
 	mv docs/media/background.pn{,g}
 
 test:
