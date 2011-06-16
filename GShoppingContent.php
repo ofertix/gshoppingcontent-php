@@ -51,23 +51,43 @@ const BASE = 'https://content.googleapis.com/content/v1/';
 
 
 /**
- * Response
+ * HTTP Response
+ *
+ * Wraps the CURL response and information data of the response.
  *
  * @package GShoppingContent
+ * @version 1
  * @author afshar@google.com
  **/
 class  _GSC_Response
 {
 
+    /**
+     * HTTP response body.
+     *
+     * @var string
+     **/
     public $body;
-    public $code;
-    public $content_type;
-    public $headers;
 
     /**
-     * undocumented function
+     * HTTP response code.
      *
-     * @return void
+     * @var int
+     **/
+    public $code;
+
+    /**
+     * Http response content type.
+     *
+     * @var string
+     **/
+    public $content_type;
+
+    /**
+     * Create a new _GSC_Response instance.
+     *
+     * @param array $info The info result from CURL after making a request.
+     * @param string $body The response body.
      * @author afshar@google.com
      **/
     function __construct($info, $body)
@@ -82,18 +102,27 @@ class  _GSC_Response
 
 
 /**
- * _GSC_Http class
+ * HTTP client
+ *
+ * A thin wrapper around CURL to ease the repetitive tasks such as adding
+ * Authorization headers.
+ *
+ * This class is entirely static, and all functions are designed to be used
+ * statically. It maintains no state.
  *
  * @package GShoppingContent
+ * @version 1
  * @author afshar@google.com
+ * @copyright Google Inc, 2011
  **/
 class _GSC_Http
 {
     /**
-     * undocumented function
+     * Post fields as an HTTP form.
      *
-     * @return void
-     * @author afshar@google.com
+     * @param string $uri The URI to post to.
+     * @param array $fields The form fields to post.
+     * @return _GSC_Response The response to the request.
      **/
     public static function postForm($uri, $fields)
     {
@@ -104,6 +133,14 @@ class _GSC_Http
         return self::req($ch);
     }
 
+    /**
+     * Make an HTTP POST request with a Google Authorization header.
+     *
+     * @param string $uri The URI to post to.
+     * @param string $data The data to post.
+     * @param string $auth The authorization token.
+     * @return _GSC_Response The response to the request.
+     **/
     public static function post($uri, $data, $auth) {
         $ch = self::ch();
         $headers = array(
@@ -117,6 +154,12 @@ class _GSC_Http
         return self::req($ch);
     }
 
+    /**
+     * Make an HTTP request and create a response.
+     *
+     * @param CURL $ch The curl session.
+     * @return _GSC_Response The response to the request.
+     **/
     public static function req($ch) {
         $output = curl_exec($ch);
         $info = curl_getinfo($ch);
@@ -124,6 +167,11 @@ class _GSC_Http
         return new _GSC_Response($info, $output);
     }
 
+    /**
+     * Create and initialize a CURL session.
+     *
+     * @return CURL The curl session.
+     **/
     private static function ch() {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -137,6 +185,7 @@ class _GSC_Http
  * ClientLogin
  *
  * @package GShoppingContent
+ * @version 1
  **/
 class _GSC_ClientLogin 
 {
@@ -176,6 +225,8 @@ class _GSC_ClientLogin
  * uclass
  *
  * @packaged default
+ * @version 1
+ * @copyright Google Inc, 2011
  * @author afshar@google.com
  **/
 class _GSC_ClientError extends Exception { }
@@ -184,6 +235,8 @@ class _GSC_ClientError extends Exception { }
  * GSC_Client
  *
  * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
  * @author afshar@google.com
  **/
 class GSC_Client
@@ -253,124 +306,12 @@ class GSC_Client
 } 
 
 
-
-
-
-/**
- * AtomElement
- *
- * @package GShoppingContent
- **/
-abstract class _GSC_AtomElement
-{
-    public $doc;
-    public $model;
-
-    function __construct($doc=null, $model=null) {
-        // ternerahay!
-        $this->doc = $doc ? $doc : $this->createDoc();
-        $this->model = $model ? $model : $this->createModel();
-    }
-
-    /**
-     * Get the first element of a tag type.
-     *
-     * @return Element.
-     **/
-    protected function getFirst($tag, $parent=null) {
-        $el = $parent ? $parent : $this->model;
-        $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
-        if ($list->length > 0) {
-            $el = $list->item(0);
-            return $el;
-        }
-        else {
-            return null;
-        }
-    }
-
-    protected function getCreateFirst($tag, $parent=null) {
-        $el = $parent ? $parent : $this->model;
-        $child = $this->getFirst($tag, $parent);
-        if ($child == null) {
-            $child = $this->doc->createElementNS($tag[0], $tag[1], null);
-            $el->appendChild($child);
-            return $child;
-        }
-        else {
-            return $child;
-        }
-    }
-
-    protected function getFirstValue($tag, $el=null) {
-        $child = $this->getFirst($tag, $el);
-        if ($el) {
-            return $child->nodeValue;
-        }
-        else {
-            return '';
-        }
-    }
-
-    protected function setFirstValue($tag, $val, $parent=null) {
-        $child = $this->getCreateFirst($tag, $parent);
-        $child->nodeValue = $val;
-        return $child;
-    }
-
-    function deleteAll($tag, $parent=null) {
-        $el = $parent ? $parent : $this->model;
-        $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
-        $count = $list->length;
-        for($pos=0; $pos<$count; $pos++) {
-            $child = $list->item(0);
-            $el->removeChild($child);
-        }
-    }
-
-    function getLink($rel) {
-        $list = $this->model->getElementsByTagNameNS(atom_ns, 'link');
-        $count = $list->length;
-        for($pos=0; $pos<$count; $pos++) {
-            $child = $list->item(0);
-            if ($child->getAttribute('rel') == $rel) {
-                return $child;
-            }
-        }
-        return null;
-    }
-
-    function createDoc() {
-        $doc = new DOMDocument();
-        $doc->preserveWhiteSpace = false;
-        $doc->formatOutput = true;
-        return $doc;
-    }
-
-    function toXML() {
-        return $this->doc->saveXML($this->model);
-    }
-
-    function create($tag, $content=null) {
-        return $this->doc->createElementNS($tag[0], $tag[1], $content);
-    }
-
-
-    abstract function createModel();
-} // END cclass 
-
-
-
-
-const atom_ns = "http://www.w3.org/2005/Atom";
-const sc_ns = "http://schemas.google.com/structuredcontent/2009";
-const scp_ns = "http://schemas.google.com/structuredcontent/2009/products";
-const batch_ns = "http://schemas.google.com/gdata/batch";
-
 /**
  * Namespaces used by GSC
  *
  * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
  * @author afshar@google.com
 **/
 class _GSC_Ns {
@@ -400,6 +341,7 @@ class _GSC_Ns {
     const scp = 'http://schemas.google.com/structuredcontent/2009/products';
 }
 
+
 /**
  * Tags used by GSC.
  *
@@ -407,6 +349,8 @@ class _GSC_Ns {
  * name'
  *
  * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
 **/
 class _GSC_Tags {
     /**
@@ -423,7 +367,7 @@ class _GSC_Tags {
      * @var array
      * @see GSC_Product::setTitle(), GSC_Product::getTitle()
      **/
-    public static $title = array(atom_ns, 'title');
+    public static $title = array(_GSC_Ns::atom, 'title');
 
     /**
      * The <atom:content> tag.
@@ -487,14 +431,16 @@ class _GSC_Tags {
     public static $excluded_destination = array(_GSC_Ns::sc, 'excluded_destination');
 }
 
+
 /**
  * Atom Parser
  *
  * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
  * @author afshar@google.com
  **/
-class _GSC_AtomParser 
-{
+class _GSC_AtomParser {
     public static function parse($xml) {
         $doc = new DOMDocument();
         $doc->preserveWhiteSpace = false;
@@ -515,13 +461,138 @@ class _GSC_AtomParser
 
 
 /**
+ * The base implementation for retrieving and setting values from a chunk of
+ * XML.
+ *
+ * This class, and concrete implementations will store no internal state. Their
+ * entire data is stored in the $model as XML, and is controlled using the owner
+ * $doc.
+ *
+ * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
+ * @author afshar@google.com
+ **/
+abstract class _GSC_AtomElement
+{
+    public $doc;
+    public $model;
+
+    /**
+     * Create a new _GSC_AtomElement
+     *
+     * The data for this element can come from one of two places. Either some
+     * XML from the API, or created from scratch. If the $model and the $doc are
+     * not provided, empty versions are created. The default $model creation
+     * should be controlled by overriding _GSC_AtomElement::createModel().
+     *
+     * @param DOMDocument $doc An existing DOM Document.
+     * @param DOMElement $model An existing DOM Element.
+     * @return _GSC_AtomElement
+     **/
+    function __construct($doc=null, $model=null) {
+        // ternerahay!
+        $this->doc = $doc ? $doc : $this->createDoc();
+        $this->model = $model ? $model : $this->createModel();
+    }
+
+    /**
+     * Get the first element of a tag type.
+     *
+     * @return Element.
+     **/
+    protected function getFirst($tag, $parent=null) {
+        $el = $parent ? $parent : $this->model;
+        $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
+        if ($list->length > 0) {
+            $el = $list->item(0);
+            return $el;
+        }
+        else {
+            return null;
+        }
+    }
+
+    protected function getCreateFirst($tag, $parent=null) {
+        $el = $parent ? $parent : $this->model;
+        $child = $this->getFirst($tag, $parent);
+        if ($child == null) {
+            $child = $this->doc->createElementNS($tag[0], $tag[1], null);
+            $el->appendChild($child);
+            return $child;
+        }
+        else {
+            return $child;
+        }
+    }
+
+    protected function getFirstValue($tag, $el=null) {
+        $child = $this->getFirst($tag, $el);
+        if ($el) {
+            return $child->nodeValue;
+        }
+        else {
+            return '';
+        }
+    }
+
+    protected function setFirstValue($tag, $val, $parent=null) {
+        $child = $this->getCreateFirst($tag, $parent);
+        $child->nodeValue = $val;
+        return $child;
+    }
+
+    function deleteAll($tag, $parent=null) {
+        $el = $parent ? $parent : $this->model;
+        $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
+        $count = $list->length;
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item(0);
+            $el->removeChild($child);
+        }
+    }
+
+    function getLink($rel) {
+        $list = $this->model->getElementsByTagNameNS(_GSC_Ns::atom, 'link');
+        $count = $list->length;
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item(0);
+            if ($child->getAttribute('rel') == $rel) {
+                return $child;
+            }
+        }
+        return null;
+    }
+
+    function createDoc() {
+        $doc = new DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+        return $doc;
+    }
+
+    function toXML() {
+        return $this->doc->saveXML($this->model);
+    }
+
+    function create($tag, $content=null) {
+        return $this->doc->createElementNS($tag[0], $tag[1], $content);
+    }
+
+
+    abstract function createModel();
+} 
+
+
+/**
  * GSC_Product
  *
  * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
  * @author afshar@google.com
  **/
-class GSC_Product extends _GSC_AtomElement
-{
+class GSC_Product extends _GSC_AtomElement {
 
     /**
      * Get the product title.
@@ -599,7 +670,7 @@ class GSC_Product extends _GSC_AtomElement
      * @return string The SKU of the product.
      **/
     function getSKU() {
-        return $this->getFirstValue(sc_ns, 'id');
+        return $this->getFirstValue(_GSC_Tags::$id);
     }
 
     /**
@@ -609,7 +680,7 @@ class GSC_Product extends _GSC_AtomElement
      * @return DOMElement The element that was changed.
      **/
     function setSKU($sku) {
-        $this->setFirstValue(sc_ns, 'id', $sku);
+        $this->setFirstValue(_GSC_Tags::$id, $sku);
     }
 
     /**
@@ -1161,7 +1232,7 @@ class GSC_Product extends _GSC_AtomElement
      * @return DOMElement The element that was created.
      **/
     function addTax($country, $region, $rate, $ship) {
-        $el = $this->doc->createElementNS(scp_ns, 'tax', '');
+        $el = $this->create(_GSC_Tags::$tax);
         $this->setFirstValue(_GSC_Tags::$tax_country, $country, $el);
         $this->setFirstValue(_GSC_Tags::$tax_region, $region, $el);
         $this->setFirstValue(_GSC_Tags::$tax_rate, $rate, $el);
@@ -1211,7 +1282,7 @@ class GSC_Product extends _GSC_AtomElement
      *
      * @return void
      **/
-    function clearAllDestination() {
+    function clearAllDestinations() {
         $this->deleteAll(_GSC_Tags::$control);
     }
 
@@ -1320,13 +1391,16 @@ class GSC_Product extends _GSC_AtomElement
 
 } 
 
+
 /**
  * GSC_ProductList
  *
  * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
+ * @author afshar@google.com
  **/
-class GSC_ProductList extends _GSC_AtomElement
-{
+class GSC_ProductList extends _GSC_AtomElement {
     
     /**
      * ufunction
@@ -1352,7 +1426,7 @@ class GSC_ProductList extends _GSC_AtomElement
         $this->doc->loadXML($s);
         return $this->doc->documentElement;
     }
-} // END class 
+} 
 
 
 ?>
