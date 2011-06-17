@@ -647,23 +647,23 @@ class _GSC_Tags {
     public static $online_only = array(_GSC_Ns::scp, 'online_only');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:gtin> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     * @see GSC_Product::setGtin(), GSC_Product::getGtin()
      **/
     public static $gtin = array(_GSC_Ns::scp, 'gtin');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:product_type> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     * @see GSC_Product::setProductType(), GSC_Product::getProductType()
      **/
     public static $product_type = array(_GSC_Ns::scp, 'product_type');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:product_review_average> element
      *
      * @var array
      * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
