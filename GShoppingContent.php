@@ -418,53 +418,344 @@ class _GSC_Tags {
      * <atom:link> element
      *
      * @var array
+     * @see GSC_Product::setProductLink(), GSC_Product::getProductLink()
      **/
     public static $link = array(_GSC_Ns::atom, 'link');
 
     /**
-     * <sc:id>
+     * <sc:id> element
+     *
+     * @var array
+     * @see GSC_Product::setSKU(), GSC_Product::getSKU()
      **/
     public static $id = array(_GSC_Ns::sc, 'id');
+    
+    /**
+     * <sc:adult> element
+     *
+     * @var array
+     * @see GSC_Product::setAdult(), GSC_Product::getAdult()
+     **/
     public static $adult = array(_GSC_Ns::sc, 'adult');
+    
+    /**
+     * <scp:price> element
+     *
+     * @var array
+     * @see GSC_Product::setPrice(), GSC_Product::getPrice(), GSC_Product::getPriceUnit()
+     **/
     public static $price = array(_GSC_Ns::scp, 'price');
+
+    /**
+     * <scp:target_country> element
+     *
+     * @var array
+     * @see GSC_Product::setTargetCountry(), GSC_Product::getTargetCountry()
+     **/
     public static $target_country = array(_GSC_Ns::scp, 'target_country');
+    
+    /**
+     * <scp:content_language> element
+     *
+     * @var array
+     * @see GSC_Product::setContentLanguage(), GSC_Product::getContentLanguage()
+     **/
     public static $content_language = array(_GSC_Ns::scp, 'content_language');
+
+    /**
+     * <scp:condition> element
+     *
+     * @var array
+     * @see GSC_Product::setCondition(), GSC_Product::getCondition()
+     **/
     public static $condition = array(_GSC_Ns::scp, 'condition');
+
+    /**
+     * <scp:image_link> element
+     *
+     * @var array
+     * @see GSC_Product::addImageLink(), GSC_Product::clearAllImageLinks()
+     **/
     public static $image_link = array(_GSC_Ns::scp, 'image_link');
+
+    /**
+     * <scp:expiration_date> element
+     *
+     * @var array
+     * @see GSC_Product::setExpirationDate(), GSC_Product::getExpirationDate()
+     **/
     public static $expiration_date = array(_GSC_Ns::scp, 'expiration_date');
+
+    /**
+     * <scp:shipping> element
+     *
+     * @var array
+     * @see GSC_Product::addShipping(), GSC_Product::clearAllShippings()
+     **/
     public static $shipping = array(_GSC_Ns::scp, 'shipping');
+
+    /**
+     * <scp:shipping_country> element
+     *
+     * @var array
+     * @see GSC_Product::addShipping(), GSC_Product::clearAllShippings()
+     **/
     public static $shipping_country = array(_GSC_Ns::scp, 'shipping_country');
+
+    /**
+     * <scp:shipping_region> element
+     *
+     * @var array
+     * @see GSC_Product::addShipping(), GSC_Product::clearAllShippings()
+     **/
     public static $shipping_region = array(_GSC_Ns::scp, 'shipping_region');
+
+    /**
+     * <scp:shipping_price> element
+     *
+     * @var array
+     * @see GSC_Product::addShipping(), GSC_Product::clearAllShippings()
+     **/
     public static $shipping_price = array(_GSC_Ns::scp, 'shipping_price');
+
+    /**
+     * <scp:shipping_service> element
+     *
+     * @var array
+     * @see GSC_Product::addShipping(), GSC_Product::clearAllShippings()
+     **/
     public static $shipping_service = array(_GSC_Ns::scp, 'shipping_service');
+
+    /**
+     * <scp:tax> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $tax = array(_GSC_Ns::scp, 'tax');
+
+    /**
+     * <scp:tax_country> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $tax_country = array(_GSC_Ns::scp, 'tax_country');
+
+    /**
+     * <scp:tax_region> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $tax_region = array(_GSC_Ns::scp, 'tax_region');
+
+    /**
+     * <scp:tax_rate> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $tax_rate = array(_GSC_Ns::scp, 'tax_rate');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $tax_ship = array(_GSC_Ns::scp, 'tax_ship');
+
+    /**
+     * <scp:author> element
+     *
+     * @var array
+     * @see GSC_Product::setAuthor(), GSC_Product::getAuthor()
+     **/
     public static $author = array(_GSC_Ns::scp, 'author');
+
+    /**
+     * <scp:availability> element
+     *
+     * @var array
+     * @see GSC_Product::setAvailability(), GSC_Product::getAvailability()
+     **/
     public static $availability = array(_GSC_Ns::scp, 'availability');
+
+    /**
+     * <scp:brand> element
+     *
+     * @var array
+     * @see GSC_Product::setBrand(), GSC_Product::getBrand()
+     **/
     public static $brand = array(_GSC_Ns::scp, 'brand');
+
+    /**
+     * <scp:color> element
+     *
+     * @var array
+     * @see GSC_Product::setColor(), GSC_Product::getColor()
+     **/
     public static $color = array(_GSC_Ns::scp, 'color');
+
+    /**
+     * <scp:edition> element
+     *
+     * @var array
+     * @see GSC_Product::setEdition(), GSC_Product::getEdition()
+     **/
     public static $edition = array(_GSC_Ns::scp, 'edition');
+
+    /**
+     * <scp:feature> element
+     *
+     * @var array
+     * @see GSC_Product::addFeature(), GSC_Product::clearAllTaxes()
+     **/
     public static $feature = array(_GSC_Ns::scp, 'feature');
+
+    /**
+     * <scp:featured_product> element
+     *
+     * @var array
+     * @see GSC_Product::setFeaturedProduct(), GSC_Product::getFeaturedProduct()
+     **/
     public static $featured_product = array(_GSC_Ns::scp, 'featured_product');
+
+    /**
+     * <scp:manufacturer> element
+     *
+     * @var array
+     * @see GSC_Product::setManufacturer(), GSC_Product::getManufacturer()
+     **/
     public static $manufacturer = array(_GSC_Ns::scp, 'manufacturer');
+
+    /**
+     * <scp:mpn> element
+     *
+     * @var array
+     * @see GSC_Product::setMpn(), GSC_Product::getMpn()
+     **/
     public static $mpn = array(_GSC_Ns::scp, 'mpn');
+
+    /**
+     * <scp:online_only> element
+     *
+     * @var array
+     * @see GSC_Product::setOnlineOnly(), GSC_Product::getOnlineOnly()
+     **/
     public static $online_only = array(_GSC_Ns::scp, 'online_only');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $gtin = array(_GSC_Ns::scp, 'gtin');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $product_type = array(_GSC_Ns::scp, 'product_type');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $product_review_average = array(_GSC_Ns::scp, 'product_review_average');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $quantity = array(_GSC_Ns::scp, 'quantity');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $shipping_weight = array(_GSC_Ns::scp, 'shipping_weight');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $size = array(_GSC_Ns::scp, 'size');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $year = array(_GSC_Ns::scp, 'year');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $adwords_grouping = array(_GSC_Ns::scp, 'adwords_grouping');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $adwords_labels = array(_GSC_Ns::scp, 'adwords_labels');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $adwords_redirect = array(_GSC_Ns::scp, 'adwords_redirect');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $adwords_queryparam = array(_GSC_Ns::scp, 'adwords_queryparam');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $control = array(_GSC_Ns::app, 'control');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $required_destination = array(_GSC_Ns::sc, 'required_destination');
+
+    /**
+     * <scp:tax_ship> element
+     *
+     * @var array
+     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
     public static $excluded_destination = array(_GSC_Ns::sc, 'excluded_destination');
 }
 
@@ -968,6 +1259,25 @@ class GSC_Product extends _GSC_AtomElement {
      **/
     public function setBrand($brand) {
         return $this->setFirstValue(_GSC_Tags::$brand, $brand);
+    }
+
+    /**
+     * Get the availability of the product.
+     *
+     * @return string The availability of the product.
+     **/
+    public function getAvailability() {
+        return $this->getFirstValue(_GSC_Tags::$availability);
+    }
+
+    /**
+     * Set the availability of the product.
+     *
+     * @param string $availability the availability to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setAvailability($availability) {
+        return $this->setFirstValue(_GSC_Tags::$availability, $availability);
     }
 
     /**
