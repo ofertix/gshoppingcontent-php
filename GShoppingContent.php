@@ -1,6 +1,6 @@
 <?php
 
-/** 
+/**
  * PHP library for interacting with Google Content API for Shopping.
  *
  * Copyright 2011 Google, Inc
