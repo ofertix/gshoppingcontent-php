@@ -34,7 +34,7 @@ class Credentials {
         fwrite(STDOUT, $prompt . " >");
         return fgets(STDIN);
     }
-    
+
     public static function get() {
         return array(
             "merchantId" => self::input("Enter your Merchant Id"),
