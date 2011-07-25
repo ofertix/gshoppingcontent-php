@@ -15,7 +15,6 @@ doc:
         -i tests/ \
         -s on \
         -o HTML:Smarty:PHP
-	mv $(docsout)/media/background.pn{,g}
 
 docup : doc
 	cat ~/.asp | /usr/local/google_appengine/appcfg.py update docs/

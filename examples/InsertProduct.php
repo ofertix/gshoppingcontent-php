@@ -1,6 +1,24 @@
 <?php
 /**
  * Example to insert a product.
+ *
+ * Copyright 2011 Google, Inc
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *   use this file except in compliance with the License.  You may obtain a copy
+ *   of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *   License for the specific language governing permissions and limitations
+ *   under the License.
+ *
+ * @version 1
+ * @author afshar@google.com
+ * @copyright Google Inc, 2011
  */
 
 // import our library
@@ -15,31 +33,28 @@ $client->login($creds["email"], $creds["password"]);
 
 // Now enter some product data
 $product = new GSC_Product();
+$product->setSKU("dd192");
+$product->setProductLink("http://code.google.com/");
 $product->setTitle("Dijji Digital Camera");
 $product->setPrice("199.99", "usd");
 $product->setAdult("false");
+$product->setCondition("new");
 
 // Finally send the data to the API
-
-
+$entry = $client->insert($product);
+echo('Inserted: ' . $entry->getTitle() . "\n");
 
 /**
- * Credentials
+ * Credentials - Enter your own values
  *
- * @package default
- * @author Me
+ * @author afshar@google.com
 **/
 class Credentials {
-    private static function input($prompt) {
-        fwrite(STDOUT, $prompt . " >");
-        return fgets(STDIN);
-    }
-
     public static function get() {
         return array(
-            "merchantId" => self::input("Enter your Merchant Id"),
-            "email" => self::input("Enter your email address"),
-            "password" => self::input("Enter your password (not stored)"),
+            "merchantId" => "7852698",
+            "email" => "jsmith@gmail.com",
+            "password" => "XXXXXX",
         );
     }
 }

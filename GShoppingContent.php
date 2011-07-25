@@ -95,7 +95,6 @@ class  _GSC_Response
         $this->code = $info['http_code'];
         $this->content_type = $info['content_type'];
         $this->body = $body;
-        print_r($info);
     }
 
 }
@@ -281,7 +280,7 @@ class GSC_Client
      * @return void
      **/
     public function login($email, $password) {
-        $this->token = ClientLogin::login($email, $password);
+        $this->token = _GSC_ClientLogin::login($email, $password);
     }
 
     /**
@@ -291,11 +290,12 @@ class GSC_Client
      * @return _GSC_Response The HTTP response.
      */
     public function insert($product) {
-        return _GSC_Http::post(
+        $resp = _GSC_Http::post(
             $this->getFeedUri(),
             $product->toXML(),
             $this->getTokenHeader()
-        );
+          );
+        return _GSC_AtomParser::parse($resp->body);
     }
 
     /**
@@ -429,7 +429,7 @@ class _GSC_Tags {
      * @see GSC_Product::setSKU(), GSC_Product::getSKU()
      **/
     public static $id = array(_GSC_Ns::sc, 'id');
-    
+
     /**
      * <sc:adult> element
      *
@@ -437,7 +437,7 @@ class _GSC_Tags {
      * @see GSC_Product::setAdult(), GSC_Product::getAdult()
      **/
     public static $adult = array(_GSC_Ns::sc, 'adult');
-    
+
     /**
      * <scp:price> element
      *
@@ -453,7 +453,7 @@ class _GSC_Tags {
      * @see GSC_Product::setTargetCountry(), GSC_Product::getTargetCountry()
      **/
     public static $target_country = array(_GSC_Ns::scp, 'target_country');
-    
+
     /**
      * <scp:content_language> element
      *
@@ -782,7 +782,6 @@ class _GSC_AtomParser {
         $doc->formatOutput = true;
         $doc->loadXML($xml);
         $root = $doc->documentElement;
-        print_r($root->tagName);
         if ($root->tagName == 'entry') {
             return new GSC_Product($doc, $root);
         }
@@ -863,7 +862,7 @@ abstract class _GSC_AtomElement
 
     protected function getFirstValue($tag, $el=null) {
         $child = $this->getFirst($tag, $el);
-        if ($el) {
+        if ($child) {
             return $child->nodeValue;
         }
         else {
@@ -1121,6 +1120,7 @@ class GSC_Product extends _GSC_AtomElement {
             $el = $this->create(_GSC_Tags::$link);
             $el->setAttribute('href', $link);
             $el->setAttribute('rel', 'alternate');
+            $el->setAttribute('type', 'text/html');
             $this->model->appendChild($el);
         }
         else {
