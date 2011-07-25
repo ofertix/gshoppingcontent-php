@@ -10,5 +10,13 @@ Dependencies:
 
     (most distributions carry these)
 
+GShoppingContent is a PHP library for communicating with the Google Content API
+for Shopping. This API is used to upload your retail products to Google
+Shopping.
+
+The library is entirely self contained, depending only on the DOM and Curl
+libraries built into most modern PHP distributions. It is presented as a single
+php file that can be dropped into any application for convenience.
+
 See http://gshoppingcontent-php.appspot.com/ or docs/html (if you have the
 source code) for more details.

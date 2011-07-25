@@ -17,7 +17,7 @@ doc:
         -o HTML:Smarty:PHP
 
 docup : doc
-	cat ~/.asp | /usr/local/google_appengine/appcfg.py update docs/
+	cat ~/.asp | /usr/local/google_appengine/appcfg.py -e afshar@google.com update docs/
 
 test:
 	phpunit --colors tests/
