@@ -21,6 +21,7 @@
  * @author afshar@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
+ * @example examples/InsertProduct.php Inserting a product
  **/
 
 
@@ -223,7 +224,7 @@ class _GSC_ClientLogin
 /**
  * Base class for client errors.
  *
- * @packaged default
+ * @package GShoppingContent
  * @version 1
  * @copyright Google Inc, 2011
  * @author afshar@google.com
@@ -305,11 +306,12 @@ class GSC_Client
      * @return GSC_ProductList The returned results from the batch.
      **/
     public function batch($products) {
-        return _GSC_Http::post(
+        $resp = _GSC_Http::post(
             $this->getBatchUri(),
             $products->toXML(),
             $this->getTokenHeader()
-        );
+          );
+        return _GSC_AtomParser::parse($resp->body);
     }
 
     /**
@@ -391,12 +393,27 @@ class _GSC_Ns {
 **/
 class _GSC_Tags {
     /**
+     * The <atom:entry> tag.
+     *
+     * @var array
+     **/
+    public static $entry = array(_GSC_Ns::atom, 'entry');
+
+    /**
      * The <batch:operation> tag.
      *
      * @var array
      * @see GSC_Product::setBatchOperation(), GSC_Product::getBatchOperation()
      **/
     public static $operation = array(_GSC_Ns::batch, 'operation');
+
+    /**
+     * The <batch:status> tag.
+     *
+     * @var array
+     * @see GSC_Product::getBatchStatus()
+     **/
+    public static $status = array(_GSC_Ns::batch, 'status');
 
     /**
      * The <atom:title> tag.
@@ -479,7 +496,8 @@ class _GSC_Tags {
     public static $image_link = array(_GSC_Ns::scp, 'image_link');
 
     /**
-     * <scp:expiration_date> element
+     * <scp:expiration_date> element}
+
      *
      * @var array
      * @see GSC_Product::setExpirationDate(), GSC_Product::getExpirationDate()
@@ -503,7 +521,8 @@ class _GSC_Tags {
     public static $shipping_country = array(_GSC_Ns::scp, 'shipping_country');
 
     /**
-     * <scp:shipping_region> element
+     * <scp:shipping_region> element}
+
      *
      * @var array
      * @see GSC_Product::addShipping(), GSC_Product::clearAllShippings()
@@ -786,9 +805,8 @@ class _GSC_AtomParser {
             return new GSC_Product($doc, $root);
         }
         else if ($root->tagName == 'feed') {
-            $coll = new GSC_ProductList($root);
+            return new GSC_ProductList($doc, $root);
         }
-        return $doc;
     }
 
 }
@@ -874,6 +892,12 @@ abstract class _GSC_AtomElement
         $child = $this->getCreateFirst($tag, $parent);
         $child->nodeValue = $val;
         return $child;
+    }
+
+    function getAll($tag, $parent=null) {
+        $el = $parent ? $parent : $this->model;
+        $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
+        return $list;
     }
 
     function deleteAll($tag, $parent=null) {
@@ -1726,6 +1750,18 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
+     * Get the batch status code.
+     *
+     * @return sting The status code for this batch operation
+     **/
+    function getBatchStatus() {
+      $el = $this->getFirst(_GSC_Tags::$status);
+      return $el->getAttribute('code');
+    }
+
+
+
+    /**
      * Create the initial model when none is provided.
      *
      * @return void
@@ -1770,6 +1806,15 @@ class GSC_ProductList extends _GSC_AtomElement {
     }
 
     public function getProducts() {
+        $list = $this->getAll(_GSC_Tags::$entry);
+        $count = $list->length;
+        $products = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item(0);
+            $product = new GSC_Product($this->doc, $child);
+            array_push($products, $product);
+        }
+        return $products;
     }
 
     /**

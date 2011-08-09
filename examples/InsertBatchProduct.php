@@ -40,10 +40,17 @@ $product->setTitle("Dijji Digital Camera");
 $product->setPrice("199.99", "usd");
 $product->setAdult("false");
 $product->setCondition("new");
+$product->setBatchOperation("insert");
+
+$batch = new GSC_ProductList();
+$batch->addProduct($product);
 
 // Finally send the data to the API
-$entry = $client->insert($product);
-echo('Inserted: ' . $entry->getTitle() . "\n");
+$feed = $client->batch($batch);
+$products = $feed->getProducts();
+$operation = $products[0];
+echo('Inserted: ' . $operation->getTitle() . "\n");
+echo('Status: ' . $operation->getBatchStatus() . "\n");
 
 /**
  * Credentials - Enter your own values
@@ -53,9 +60,9 @@ echo('Inserted: ' . $entry->getTitle() . "\n");
 class Credentials {
     public static function get() {
         return array(
-            "merchantId" => "7842698",
-            "email" => "aafshar@gmail.com",
-            "password" => "subhanul",
+            "merchantId" => "7852698",
+            "email" => "jsmith@gmail.com",
+            "password" => "XXXXXX",
         );
     }
 }
