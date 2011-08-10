@@ -339,7 +339,7 @@ class GSC_Client
      **/
     public function getTokenHeader() {
         $this->checkToken();
-        return 'GoogleLogin auth=' . $this->token; 
+        return 'GoogleLogin auth=' . $this->token;
     }
 
 }
@@ -488,12 +488,20 @@ class _GSC_Tags {
     public static $condition = array(_GSC_Ns::scp, 'condition');
 
     /**
-     * <scp:image_link> element
+     * <sc:image_link> element
      *
      * @var array
      * @see GSC_Product::addImageLink(), GSC_Product::clearAllImageLinks()
      **/
-    public static $image_link = array(_GSC_Ns::scp, 'image_link');
+    public static $image_link = array(_GSC_Ns::sc, 'image_link');
+
+    /**
+     * <sc:additional_image_link> element
+     *
+     * @var array
+     * @see GSC_Product::addAdditionalImageLink(), GSC_Product::clearAllAdditionalImageLinks()
+     **/
+    public static $image_link = array(_GSC_Ns::sc, 'additional_image_link');
 
     /**
      * <scp:expiration_date> element}
@@ -685,95 +693,125 @@ class _GSC_Tags {
      * <scp:product_review_average> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $product_review_average = array(_GSC_Ns::scp, 'product_review_average');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:quantity> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $quantity = array(_GSC_Ns::scp, 'quantity');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:shipping_weight> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $shipping_weight = array(_GSC_Ns::scp, 'shipping_weight');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:size> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $size = array(_GSC_Ns::scp, 'size');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:year> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $year = array(_GSC_Ns::scp, 'year');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:channel> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
+     **/
+    public static $channel = array(_GSC_Ns::scp, 'channel');
+
+    /**
+     * <scp:gender> element
+     *
+     * @var array
+     **/
+    public static $gender = array(_GSC_Ns::scp, 'gender');
+
+    /**
+     * <scp:item_group_id> element
+     *
+     * @var array
+     **/
+    public static $item_group_id = array(_GSC_Ns::scp, 'item_group_id');
+
+    /**
+     * <scp:google_product_category> element
+     *
+     * @var array
+     **/
+    public static $google_product_category = array(_GSC_Ns::scp, 'google_product_category');
+
+    /**
+     * <scp:material> element
+     *
+     * @var array
+     **/
+    public static $material = array(_GSC_Ns::scp, 'material');
+
+    /**
+     * <scp:pattern> element
+     *
+     * @var array
+     **/
+    public static $pattern = array(_GSC_Ns::scp, 'pattern');
+
+    /**
+     * <scp:adwords_grouping> element
+     *
+     * @var array
      **/
     public static $adwords_grouping = array(_GSC_Ns::scp, 'adwords_grouping');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:adwords_labels> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $adwords_labels = array(_GSC_Ns::scp, 'adwords_labels');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:adwords_redirect> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $adwords_redirect = array(_GSC_Ns::scp, 'adwords_redirect');
 
     /**
-     * <scp:tax_ship> element
+     * <scp:adwords_queryparam> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $adwords_queryparam = array(_GSC_Ns::scp, 'adwords_queryparam');
 
     /**
-     * <scp:tax_ship> element
+     * <app:control> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $control = array(_GSC_Ns::app, 'control');
 
     /**
-     * <scp:tax_ship> element
+     * <sc:required_destination> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $required_destination = array(_GSC_Ns::sc, 'required_destination');
 
     /**
-     * <scp:tax_ship> element
+     * <sc:excluded_destination> element
      *
      * @var array
-     * @see GSC_Product::addTax(), GSC_Product::clearAllTaxes()
      **/
     public static $excluded_destination = array(_GSC_Ns::sc, 'excluded_destination');
 }
@@ -939,7 +977,7 @@ abstract class _GSC_AtomElement
 
 
     abstract function createModel();
-} 
+}
 
 
 /**
@@ -1571,6 +1609,139 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
+     * Get the image link.
+     *
+     * @return string The link to the main image for the product.
+     **/
+    public function getImageLink() {
+        return $this->getFirstValue(_GSC_Tags::$image_link);
+    }
+
+    /**
+     * Set the image link.
+     *
+     * @param string $image_link The image link to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setImageLink($image_link) {
+        return $this->setFirstValue(_GSC_Tags::$image_link, $image_link);
+    }
+
+    /**
+     * Get the channel of the product.
+     *
+     * @return string The channel of the product.
+     **/
+    public function getChannel() {
+        return $this->getFirstValue(_GSC_Tags::$channel);
+    }
+
+    /**
+     * Set the channel of the product.
+     *
+     * @param string $channel The channel to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setChannel($channel) {
+        return $this->setFirstValue(_GSC_Tags::$channel, $channel);
+    }
+
+    /**
+     * Get the gender of the product.
+     *
+     * @return string The gender of the product.
+     **/
+    public function getGender() {
+        return $this->getFirstValue(_GSC_Tags::$gender);
+    }
+
+    /**
+     * Set the gender of the product.
+     *
+     * @param string $gender The gender to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setGender($gender) {
+        return $this->setFirstValue(_GSC_Tags::$gender, $gender);
+    }
+
+    /**
+     * Get the item group id of the product.
+     *
+     * @return string The item group id of the product.
+     **/
+    public function getItemGroupId() {
+        return $this->getFirstValue(_GSC_Tags::$item_group_id);
+    }
+
+    /**
+     * Set the item group id of the product.
+     *
+     * @param string $item_group_id The item group id to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setItemGroupId($item_group_id) {
+        return $this->setFirstValue(_GSC_Tags::$item_group_id, $item_group_id);
+    }
+
+    /**
+     * Get the google product category of the product.
+     *
+     * @return string The google product category of the product.
+     **/
+    public function getGoogleProductCategory() {
+        return $this->getFirstValue(_GSC_Tags::$google_product_category);
+    }
+
+    /**
+     * Set the google product category of the product.
+     *
+     * @param string $google_product_category The google product category to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setGoogleProductCategory($google_product_category) {
+        return $this->setFirstValue(_GSC_Tags::$google_product_category, $google_product_category);
+    }
+
+    /**
+     * Get the material of the product.
+     *
+     * @return string The material of the product.
+     **/
+    public function getMaterial() {
+        return $this->getFirstValue(_GSC_Tags::$material);
+    }
+
+    /**
+     * Set the material of the product.
+     *
+     * @param string $material The material to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setMaterial($material) {
+        return $this->setFirstValue(_GSC_Tags::$material, $material);
+    }
+
+    /**
+     * Get the pattern of the product.
+     *
+     * @return string The pattern of the product.
+     **/
+    public function getPattern() {
+        return $this->getFirstValue(_GSC_Tags::$pattern);
+    }
+
+    /**
+     * Set the pattern of the product.
+     *
+     * @param string $pattern The pattern to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setPattern($pattern) {
+        return $this->setFirstValue(_GSC_Tags::$pattern, $pattern);
+    }
+
+    /**
      * Add a shipping rule to the product.
      *
      * @param string $country The shipping country to set.
@@ -1665,23 +1836,23 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
-     * Add an image link to the product.
+     * Add an additional image link to the product.
      *
      * @param string $link The link to add.
      * @return DOMElement The element that was created.
      **/
-    function addImageLink($link) {
+    function addAdditionalImageLink($link) {
         $el = $this->create(_GSC_Tags::$image_link, $link);
         $this->model->appendChild($el);
         return $el;
     }
 
     /**
-     * Clear all the image links from this product.
+     * Clear all the additional image links from this product.
      *
      * @return void
      **/
-    function clearAllImageLinks() {
+    function clearAllAdditionalImageLinks() {
         $this->deleteAll(_GSC_Tags::$image_link);
     }
 
