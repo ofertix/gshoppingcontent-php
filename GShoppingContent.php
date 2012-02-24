@@ -357,10 +357,10 @@ class GSC_Client
 
         $queryParams = array();
         if ($maxResults != null) {
-            $queryParams[] = 'max-results=' . $maxResults;
+            array_push($queryParams, 'max-results=' . $maxResults);
         }
         if ($startToken != null) {
-            $queryParams[] = 'start-token=' . $startToken;
+            array_push($queryParams, 'start-token=' . $startToken);
         }
 
         if (count($queryParams) > 0) {
@@ -2191,6 +2191,11 @@ class GSC_ProductList extends _GSC_AtomElement {
         $this->model->appendChild($clone);
     }
 
+    /**
+     * Get the list of products.
+     *
+     * @return array List of GSC_Products from the feed.
+     **/
     public function getProducts() {
         $list = $this->getAll(_GSC_Tags::$entry);
         $count = $list->length;
@@ -2201,6 +2206,46 @@ class GSC_ProductList extends _GSC_AtomElement {
             array_push($products, $product);
         }
         return $products;
+    }
+
+    /**
+     * Get a specified query param value.
+     *
+     * @return string The query parameter if it is contained in the link,
+     *                else the empty string.
+     **/
+    function _parseQueryParam($href, $desiredKey) {
+        if (substr_count($href, '?') != 1) {
+            return '';
+        }
+
+        list($throwAway, $queryParams) = explode('?', $href, 2);
+        $params = array($desiredKey => ''); // In case not found
+        foreach (explode('&', $queryParams) as $param) {
+            if ($param) {
+                list($key, $val) = explode('=', $param, 2);
+                $params[$key] = $val;
+            }
+        }
+        return $params[$desiredKey];
+    }
+
+    /**
+     * Get the start token from the feed (for paging).
+     *
+     * @return string The start token from the rel='next' link.
+     **/
+    public function getStartToken() {
+        $el = $this->getLink('next');
+        if ($el == null) {
+            return '';
+        }
+        else {
+            return $this->_parseQueryParam(
+                $el->getAttribute('href'),
+                'start-token'
+            );
+        }
     }
 
     /**
