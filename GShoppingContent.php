@@ -118,6 +118,24 @@ class  _GSC_Response
 class _GSC_Http
 {
     /**
+     * Make an HTTP GET request with a Google Authorization header.
+     *
+     * @param string $uri The URI to post to.
+     * @param string $auth The authorization token.
+     * @return _GSC_Response The response to the request.
+     **/
+    public static function get($uri, $auth) {
+        $ch = self::ch();
+        $headers = array(
+            'Content-Type: application/atom+xml',
+            'Authorization: ' . $auth
+        );
+        curl_setopt($ch, CURLOPT_URL, $uri);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        return self::req($ch);
+    }
+
+    /**
      * Post fields as an HTTP form.
      *
      * @param string $uri The URI to post to.
@@ -328,6 +346,33 @@ class GSC_Client
     }
 
     /**
+     * Get a product from a link.
+     *
+     * @param string $link The edit link for the product.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function getFromLink($link) {
+        $resp = _GSC_Http::get(
+            $link,
+            $this->getTokenHeader()
+          );
+        return _GSC_AtomParser::parse($resp->body);
+    }
+
+    /**
+     * Get a product.
+     *
+     * @param string $id The product id.
+     * @param string $country The country specific to the product.
+     * @param string $language The language specific to the product.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function get($id, $country, $language) {
+        $link = $this->getProductUri($id, $country, $language);
+        return $this->getFromLink($link);
+    }
+
+    /**
      * Insert a product.
      *
      * @param GSC_Product $product The product to insert.
@@ -408,6 +453,24 @@ class GSC_Client
      **/
     public function getFeedUri() {
         return BASE . $this->merchantId . '/items/products/schema/';
+    }
+
+    /**
+     * Create a URI for an individual product.
+     *
+     * @param string $id The product id.
+     * @param string $country The country specific to the product.
+     * @param string $language The language specific to the product.
+     * @return string The product URI.
+     **/
+    public function getProductUri($id, $country, $language) {
+        return sprintf(
+            '%sonline:%s:%s:%s',
+            $this->getFeedUri(),
+            $language,
+            $country,
+            $id
+        );
     }
 
     /**
