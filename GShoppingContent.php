@@ -464,20 +464,20 @@ class _GSC_Tags {
     public static $price = array(_GSC_Ns::scp, 'price');
 
     /**
-     * <scp:target_country> element
+     * <sc:target_country> element
      *
      * @var array
      * @see GSC_Product::setTargetCountry(), GSC_Product::getTargetCountry()
      **/
-    public static $target_country = array(_GSC_Ns::scp, 'target_country');
+    public static $target_country = array(_GSC_Ns::sc, 'target_country');
 
     /**
-     * <scp:content_language> element
+     * <sc:content_language> element
      *
      * @var array
      * @see GSC_Product::setContentLanguage(), GSC_Product::getContentLanguage()
      **/
-    public static $content_language = array(_GSC_Ns::scp, 'content_language');
+    public static $content_language = array(_GSC_Ns::sc, 'content_language');
 
     /**
      * <scp:condition> element
@@ -501,16 +501,15 @@ class _GSC_Tags {
      * @var array
      * @see GSC_Product::addAdditionalImageLink(), GSC_Product::clearAllAdditionalImageLinks()
      **/
-    public static $image_link = array(_GSC_Ns::sc, 'additional_image_link');
+    public static $additional_image_link = array(_GSC_Ns::sc, 'additional_image_link');
 
     /**
-     * <scp:expiration_date> element}
-
+     * <sc:expiration_date> element
      *
      * @var array
      * @see GSC_Product::setExpirationDate(), GSC_Product::getExpirationDate()
      **/
-    public static $expiration_date = array(_GSC_Ns::scp, 'expiration_date');
+    public static $expiration_date = array(_GSC_Ns::sc, 'expiration_date');
 
     /**
      * <scp:shipping> element
@@ -943,7 +942,7 @@ abstract class _GSC_AtomElement
         $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
         $count = $list->length;
         for($pos=0; $pos<$count; $pos++) {
-            $child = $list->item(0);
+            $child = $list->item($pos);
             $el->removeChild($child);
         }
     }
@@ -952,7 +951,7 @@ abstract class _GSC_AtomElement
         $list = $this->model->getElementsByTagNameNS(_GSC_Ns::atom, 'link');
         $count = $list->length;
         for($pos=0; $pos<$count; $pos++) {
-            $child = $list->item(0);
+            $child = $list->item($pos);
             if ($child->getAttribute('rel') == $rel) {
                 return $child;
             }
@@ -1057,7 +1056,9 @@ class GSC_Product extends _GSC_AtomElement {
      * @return DOMElement The element that was changed.
      **/
     function setDescription($description) {
-        $this->setFirstValue(_GSC_Tags::$content, $description);
+        $el = $this->setFirstValue(_GSC_Tags::$content, $description);
+        $el->setAttribute('type', 'text');
+        return $el;
     }
 
     /**
@@ -1173,8 +1174,8 @@ class GSC_Product extends _GSC_AtomElement {
     /**
      * Set the Link for the product.
      *
-     * @param string $date The date to set in YYYY-MM-DD format.
-     * @return DOMElement The element that was changed.
+     * @param string $link The product link to add.
+     * @return DOMElement The element that was changed or created.
      **/
     function setProductLink($link) {
         $el = $this->getLink('alternate');
@@ -1842,7 +1843,7 @@ class GSC_Product extends _GSC_AtomElement {
      * @return DOMElement The element that was created.
      **/
     function addAdditionalImageLink($link) {
-        $el = $this->create(_GSC_Tags::$image_link, $link);
+        $el = $this->create(_GSC_Tags::$additional_image_link, $link);
         $this->model->appendChild($el);
         return $el;
     }
@@ -1853,7 +1854,7 @@ class GSC_Product extends _GSC_AtomElement {
      * @return void
      **/
     function clearAllAdditionalImageLinks() {
-        $this->deleteAll(_GSC_Tags::$image_link);
+        $this->deleteAll(_GSC_Tags::$additional_image_link);
     }
 
     /**
@@ -1981,7 +1982,7 @@ class GSC_ProductList extends _GSC_AtomElement {
         $count = $list->length;
         $products = array();
         for($pos=0; $pos<$count; $pos++) {
-            $child = $list->item(0);
+            $child = $list->item($pos);
             $product = new GSC_Product($this->doc, $child);
             array_push($products, $product);
         }
