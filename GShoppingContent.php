@@ -155,6 +155,30 @@ class _GSC_Http
     }
 
     /**
+     * Make an HTTP PUT request with a Google Authorization header.
+     *
+     * @param string $uri The URI to post to.
+     * @param string $data The data to post.
+     * @param string $auth The authorization token.
+     * @return _GSC_Response The response to the request.
+     **/
+    public static function put($uri, $data, $auth) {
+        $ch = self::ch();
+        $headers = array(
+            'Content-Type: application/atom+xml',
+            'Authorization: ' . $auth
+        );
+        curl_setopt($ch, CURLOPT_URL, $uri);
+        // For string data, use CURLOPT_CUSTOMREQUEST instead of CURLOPT_POST
+        // Can also use memory as file-like object as described in:
+        // gen-x-design.com/archives/making-restful-requests-in-php/
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        return self::req($ch);
+    }
+
+    /**
      * Make an HTTP request and create a response.
      *
      * @param CURL $ch The curl session.
@@ -293,6 +317,22 @@ class GSC_Client
     public function insert($product) {
         $resp = _GSC_Http::post(
             $this->getFeedUri(),
+            $product->toXML(),
+            $this->getTokenHeader()
+          );
+        return _GSC_AtomParser::parse($resp->body);
+    }
+
+    /**
+     * Update a product.
+     *
+     * @param GSC_Product $product The product to update.
+     *                    Must have rel='edit' set.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function update($product) {
+        $resp = _GSC_Http::put(
+            $product->getEditLink(),
             $product->toXML(),
             $this->getTokenHeader()
           );
@@ -1184,6 +1224,41 @@ class GSC_Product extends _GSC_AtomElement {
             $el->setAttribute('href', $link);
             $el->setAttribute('rel', 'alternate');
             $el->setAttribute('type', 'text/html');
+            $this->model->appendChild($el);
+        }
+        else {
+            $el->setAttribute('href', $link);
+        }
+    }
+
+    /**
+     * Get the edit link for the product.
+     *
+     * @return string The edit link for the product.
+     **/
+    function getEditLink() {
+        $el = $this->getLink('edit');
+        if ($el == null) {
+            return '';
+        }
+        else {
+            return $el->getAttribute('href');
+        }
+    }
+
+    /**
+     * Set the edit link for the product.
+     *
+     * @param string $link The edit link to add.
+     * @return DOMElement The element that was changed or created.
+     **/
+    function setEditLink($link) {
+        $el = $this->getLink('edit');
+        if ($el == null) {
+            $el = $this->create(_GSC_Tags::$link);
+            $el->setAttribute('href', $link);
+            $el->setAttribute('rel', 'edit');
+            $el->setAttribute('type', 'application/atom+xml');
             $this->model->appendChild($el);
         }
         else {
