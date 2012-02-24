@@ -179,6 +179,25 @@ class _GSC_Http
     }
 
     /**
+     * Make an HTTP DELETE request with a Google Authorization header.
+     *
+     * @param string $uri The URI to post to.
+     * @param string $auth The authorization token.
+     * @return _GSC_Response The response to the request.
+     **/
+    public static function delete($uri, $auth) {
+        $ch = self::ch();
+        $headers = array(
+            'Content-Type: application/atom+xml',
+            'Authorization: ' . $auth
+        );
+        curl_setopt($ch, CURLOPT_URL, $uri);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        return self::req($ch);
+    }
+
+    /**
      * Make an HTTP request and create a response.
      *
      * @param CURL $ch The curl session.
@@ -337,6 +356,34 @@ class GSC_Client
             $this->getTokenHeader()
           );
         return _GSC_AtomParser::parse($resp->body);
+    }
+
+    /**
+     * Delete a product from a link.
+     *
+     * @param string $link The edit link for the product.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function deleteFromLink($link) {
+        $resp = _GSC_Http::delete(
+            $link,
+            $this->getTokenHeader()
+          );
+
+        if ($resp->code != 200) {
+            throw new _GSC_ClientError('Delete request failed.');
+        }
+    }
+
+    /**
+     * Delete a product.
+     *
+     * @param GSC_Product $product The product to update.
+     *                    Must have rel='edit' set.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function delete($product) {
+        $this->deleteFromLink($product->getEditLink());
     }
 
     /**
