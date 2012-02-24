@@ -346,6 +346,35 @@ class GSC_Client
     }
 
     /**
+     * Get all products.
+     *
+     * @param string $maxResults The max results desired. Defaults to null.
+     * @param string $startToken The start token for the query. Defaults to null.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function getProducts($maxResults = null, $startToken = null) {
+        $feedUri = $this->getFeedUri();
+
+        $queryParams = array();
+        if ($maxResults != null) {
+            $queryParams[] = 'max-results=' . $maxResults;
+        }
+        if ($startToken != null) {
+            $queryParams[] = 'start-token=' . $startToken;
+        }
+
+        if (count($queryParams) > 0) {
+            $feedUri .= '?' . join('&', $queryParams);
+        }
+
+        $resp = _GSC_Http::get(
+            $feedUri,
+            $this->getTokenHeader()
+        );
+        return _GSC_AtomParser::parse($resp->body);
+    }
+
+    /**
      * Get a product from a link.
      *
      * @param string $link The edit link for the product.
