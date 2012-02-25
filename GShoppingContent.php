@@ -352,7 +352,7 @@ class GSC_Client
      * @param string $startToken The start token for the query. Defaults to null.
      * @return _GSC_Response The HTTP response.
      */
-    public function getProducts($maxResults = null, $startToken = null) {
+    public function getProducts($maxResults=null, $startToken=null) {
         $feedUri = $this->getFeedUri();
 
         $queryParams = array();
@@ -541,7 +541,12 @@ class _GSC_Ns {
     /**
      * Atom Publishing Protocol namespace.
      **/
-    const app = 'http://app';
+    const app = 'http://www.w3.org/2007/app';
+
+    /**
+     * Google Data namespace.
+     **/
+    const gd = 'http://schemas.google.com/g/2005';
 
     /**
      * GData Batch namespace.
@@ -572,13 +577,6 @@ class _GSC_Ns {
 **/
 class _GSC_Tags {
     /**
-     * The <atom:entry> tag.
-     *
-     * @var array
-     **/
-    public static $entry = array(_GSC_Ns::atom, 'entry');
-
-    /**
      * The <batch:operation> tag.
      *
      * @var array
@@ -593,6 +591,14 @@ class _GSC_Tags {
      * @see GSC_Product::getBatchStatus()
      **/
     public static $status = array(_GSC_Ns::batch, 'status');
+
+    /**
+     * The <atom:entry> tag.
+     *
+     * @var array
+     * @see GSC_Product::createModel(), _GSC_AtomParser::parse()
+     **/
+    public static $entry = array(_GSC_Ns::atom, 'entry');
 
     /**
      * The <atom:title> tag.
@@ -619,6 +625,81 @@ class _GSC_Tags {
     public static $link = array(_GSC_Ns::atom, 'link');
 
     /**
+     * <gd:errors> element
+     *
+     * @var array
+     * @see GSC_Product::, GSC_Product::
+     **/
+    public static $errors = array(_GSC_Ns::gd, 'errors');
+
+    /**
+     * <gd:error> element
+     *
+     * @var array
+     **/
+    public static $error = array(_GSC_Ns::gd, 'error');
+
+    /**
+     * <gd:domain> element
+     *
+     * @var array
+     **/
+    public static $domain = array(_GSC_Ns::gd, 'domain');
+
+    /**
+     * <gd:code> element
+     *
+     * @var array
+     **/
+    public static $code = array(_GSC_Ns::gd, 'code');
+
+    /**
+     * <gd:internalReason> element
+     *
+     * @var array
+     **/
+    public static $internalReason = array(_GSC_Ns::gd, 'internalReason');
+
+    /**
+     * <gd:debugInfo> element
+     *
+     * @var array
+     **/
+    public static $debugInfo = array(_GSC_Ns::gd, 'debugInfo');
+
+    /**
+     * <app:control> element
+     *
+     * @var array
+     * @see GSC_Product::add*Destination(), GSC_Product::clearAllDestinations()
+     **/
+    public static $control = array(_GSC_Ns::app, 'control');
+
+    /**
+     * <sc:required_destination> element
+     *
+     * @var array
+     * @see GSC_Product::addRequiredDestination(), GSC_Product::clearAllDestinations()
+     **/
+    public static $required_destination = array(_GSC_Ns::sc, 'required_destination');
+
+    /**
+     * <sc:validate_destination> element
+     *
+     * @var array
+     * @see GSC_Product::addValidateDestination(), GSC_Product::clearAllDestinations()
+     **/
+    public static $validate_destination = array(_GSC_Ns::sc, 'validate_destination');
+
+    /**
+     * <sc:excluded_destination> element
+     *
+     * @var array
+     * @see GSC_Product::addExcludedDestination(), GSC_Product::clearAllDestinations()
+     **/
+    public static $excluded_destination = array(_GSC_Ns::sc, 'excluded_destination');
+
+    /**
      * <sc:id> element
      *
      * @var array
@@ -627,20 +708,30 @@ class _GSC_Tags {
     public static $id = array(_GSC_Ns::sc, 'id');
 
     /**
+     * <sc:attribute> element
+     *
+     * @var array
+     * @see GSC_Product::setAttribute(), GSC_Product::getAttribute(),
+     *      GSC_Product::getAttributeType(), GSC_Product::getAttributeUnit()
+     **/
+    public static $attribute = array(_GSC_Ns::sc, 'attribute');
+
+    /**
+     * <sc:group> element
+     *
+     * @var array
+     * @see GSC_Product::setGroup(), GSC_Product::getGroup(),
+     *      GSC_Product::getGroups()
+     **/
+    public static $group = array(_GSC_Ns::sc, 'group');
+
+    /**
      * <sc:adult> element
      *
      * @var array
      * @see GSC_Product::setAdult(), GSC_Product::getAdult()
      **/
     public static $adult = array(_GSC_Ns::sc, 'adult');
-
-    /**
-     * <scp:price> element
-     *
-     * @var array
-     * @see GSC_Product::setPrice(), GSC_Product::getPrice(), GSC_Product::getPriceUnit()
-     **/
-    public static $price = array(_GSC_Ns::scp, 'price');
 
     /**
      * <sc:target_country> element
@@ -657,14 +748,6 @@ class _GSC_Tags {
      * @see GSC_Product::setContentLanguage(), GSC_Product::getContentLanguage()
      **/
     public static $content_language = array(_GSC_Ns::sc, 'content_language');
-
-    /**
-     * <scp:condition> element
-     *
-     * @var array
-     * @see GSC_Product::setCondition(), GSC_Product::getCondition()
-     **/
-    public static $condition = array(_GSC_Ns::scp, 'condition');
 
     /**
      * <sc:image_link> element
@@ -691,6 +774,22 @@ class _GSC_Tags {
     public static $expiration_date = array(_GSC_Ns::sc, 'expiration_date');
 
     /**
+     * <scp:price> element
+     *
+     * @var array
+     * @see GSC_Product::setPrice(), GSC_Product::getPrice(), GSC_Product::getPriceUnit()
+     **/
+    public static $price = array(_GSC_Ns::scp, 'price');
+
+    /**
+     * <scp:condition> element
+     *
+     * @var array
+     * @see GSC_Product::setCondition(), GSC_Product::getCondition()
+     **/
+    public static $condition = array(_GSC_Ns::scp, 'condition');
+
+    /**
      * <scp:shipping> element
      *
      * @var array
@@ -707,8 +806,7 @@ class _GSC_Tags {
     public static $shipping_country = array(_GSC_Ns::scp, 'shipping_country');
 
     /**
-     * <scp:shipping_region> element}
-
+     * <scp:shipping_region> element
      *
      * @var array
      * @see GSC_Product::addShipping(), GSC_Product::clearAllShippings()
@@ -772,6 +870,14 @@ class _GSC_Tags {
     public static $tax_ship = array(_GSC_Ns::scp, 'tax_ship');
 
     /**
+     * <scp:age_group> element
+     *
+     * @var array
+     * @see GSC_Product::setAgeGroup(), GSC_Product::getAgeGroup()
+     **/
+    public static $age_group = array(_GSC_Ns::scp, 'age_group');
+
+    /**
      * <scp:author> element
      *
      * @var array
@@ -815,7 +921,7 @@ class _GSC_Tags {
      * <scp:feature> element
      *
      * @var array
-     * @see GSC_Product::addFeature(), GSC_Product::clearAllTaxes()
+     * @see GSC_Product::addFeature(), GSC_Product::clearAllFeatures()
      **/
     public static $feature = array(_GSC_Ns::scp, 'feature');
 
@@ -871,6 +977,7 @@ class _GSC_Tags {
      * <scp:product_review_average> element
      *
      * @var array
+     * @see GSC_Product::setProductReviewAverage(), GSC_Product::getProductReviewAverage()
      **/
     public static $product_review_average = array(_GSC_Ns::scp, 'product_review_average');
 
@@ -878,6 +985,7 @@ class _GSC_Tags {
      * <scp:quantity> element
      *
      * @var array
+     * @see GSC_Product::setQuantity(), GSC_Product::getQuantity()
      **/
     public static $quantity = array(_GSC_Ns::scp, 'quantity');
 
@@ -885,6 +993,7 @@ class _GSC_Tags {
      * <scp:shipping_weight> element
      *
      * @var array
+     * @see GSC_Product::setShippingWeight(), GSC_Product::getShippingWeight()
      **/
     public static $shipping_weight = array(_GSC_Ns::scp, 'shipping_weight');
 
@@ -892,6 +1001,7 @@ class _GSC_Tags {
      * <scp:size> element
      *
      * @var array
+     * @see GSC_Product::addSize(), GSC_Product::clearAllSizes()
      **/
     public static $size = array(_GSC_Ns::scp, 'size');
 
@@ -899,6 +1009,7 @@ class _GSC_Tags {
      * <scp:year> element
      *
      * @var array
+     * @see GSC_Product::setYear(), GSC_Product::getYear()
      **/
     public static $year = array(_GSC_Ns::scp, 'year');
 
@@ -906,6 +1017,7 @@ class _GSC_Tags {
      * <scp:channel> element
      *
      * @var array
+     * @see GSC_Product::setsetChannel(), GSC_Product::getsetChannel()
      **/
     public static $channel = array(_GSC_Ns::scp, 'channel');
 
@@ -913,13 +1025,23 @@ class _GSC_Tags {
      * <scp:gender> element
      *
      * @var array
+     * @see GSC_Product::setGender(), GSC_Product::getGender()
      **/
     public static $gender = array(_GSC_Ns::scp, 'gender');
+
+    /**
+     * <scp:genre> element
+     *
+     * @var array
+     * @see GSC_Product::setGenre(), GSC_Product::getGenre()
+     **/
+    public static $genre = array(_GSC_Ns::scp, 'genre');
 
     /**
      * <scp:item_group_id> element
      *
      * @var array
+     * @see GSC_Product::setItemGroupId(), GSC_Product::getItemGroupId()
      **/
     public static $item_group_id = array(_GSC_Ns::scp, 'item_group_id');
 
@@ -927,6 +1049,7 @@ class _GSC_Tags {
      * <scp:google_product_category> element
      *
      * @var array
+     * @see GSC_Product::setGoogleProductCategory(), GSC_Product::getGoogleProductCategory()
      **/
     public static $google_product_category = array(_GSC_Ns::scp, 'google_product_category');
 
@@ -934,6 +1057,7 @@ class _GSC_Tags {
      * <scp:material> element
      *
      * @var array
+     * @see GSC_Product::setMaterial(), GSC_Product::getMaterial()
      **/
     public static $material = array(_GSC_Ns::scp, 'material');
 
@@ -941,6 +1065,7 @@ class _GSC_Tags {
      * <scp:pattern> element
      *
      * @var array
+     * @see GSC_Product::setPattern(), GSC_Product::getPattern()
      **/
     public static $pattern = array(_GSC_Ns::scp, 'pattern');
 
@@ -948,6 +1073,7 @@ class _GSC_Tags {
      * <scp:adwords_grouping> element
      *
      * @var array
+     * @see GSC_Product::setAdwordsGrouping(), GSC_Product::getAdwordsGrouping()
      **/
     public static $adwords_grouping = array(_GSC_Ns::scp, 'adwords_grouping');
 
@@ -955,6 +1081,7 @@ class _GSC_Tags {
      * <scp:adwords_labels> element
      *
      * @var array
+     * @see GSC_Product::setAdwordsLabels(), GSC_Product::getAdwordsLabels()
      **/
     public static $adwords_labels = array(_GSC_Ns::scp, 'adwords_labels');
 
@@ -962,6 +1089,7 @@ class _GSC_Tags {
      * <scp:adwords_redirect> element
      *
      * @var array
+     * @see GSC_Product::setAdwordsRedirect(), GSC_Product::getAdwordsRedirect()
      **/
     public static $adwords_redirect = array(_GSC_Ns::scp, 'adwords_redirect');
 
@@ -969,29 +1097,9 @@ class _GSC_Tags {
      * <scp:adwords_queryparam> element
      *
      * @var array
+     * @see GSC_Product::setAdwordsQueryparam(), GSC_Product::getAdwordsQueryparam()
      **/
     public static $adwords_queryparam = array(_GSC_Ns::scp, 'adwords_queryparam');
-
-    /**
-     * <app:control> element
-     *
-     * @var array
-     **/
-    public static $control = array(_GSC_Ns::app, 'control');
-
-    /**
-     * <sc:required_destination> element
-     *
-     * @var array
-     **/
-    public static $required_destination = array(_GSC_Ns::sc, 'required_destination');
-
-    /**
-     * <sc:excluded_destination> element
-     *
-     * @var array
-     **/
-    public static $excluded_destination = array(_GSC_Ns::sc, 'excluded_destination');
 }
 
 
@@ -1167,6 +1275,174 @@ abstract class _GSC_AtomElement
  * @author afshar@google.com
  **/
 class GSC_Product extends _GSC_AtomElement {
+
+    /**
+     * Get a named generic attribute as a DOMElement.
+     *
+     * @param string $attributeName The generic attribute name.
+     * @return DOMElement The DOM Element containing the generic attribute,
+     *                    if it exists, else null.
+     **/
+    public function _getAttributeElement($attributeName) {
+        $list = $this->getAll(_GSC_Tags::$attribute);
+        $count = $list->length;
+
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+
+            if ($child->getAttribute('name') == $attributeName) {
+                return $child;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the value of a named generic attribute.
+     *
+     * @param string $attributeName The generic attribute name.
+     * @return string The value of the generic attribute.
+     **/
+    public function getAttribute($attributeName) {
+        $child = $this->_getAttributeElement($attributeName);
+        if ($child == null) {
+            return null;
+        } else {
+            return $child->nodeValue;
+        }
+    }
+
+    /**
+     * Get the type of a named generic attribute.
+     *
+     * @param string $attributeName The generic attribute name.
+     * @return string The type of the generic attribute.
+     **/
+    public function getAttributeType($attributeName) {
+        $child = $this->_getAttributeElement($attributeName);
+        if ($child == null) {
+            return null;
+        } else {
+            return $child->getAttribute('type');
+        }
+    }
+
+    /**
+     * Get the unit of a named generic attribute.
+     *
+     * @param string $attributeName The generic attribute name.
+     * @return string The unit of the generic attribute.
+     **/
+    public function getAttributeUnit($attributeName) {
+        $child = $this->_getAttributeElement($attributeName);
+        if ($child == null) {
+            return null;
+        } else {
+            return $child->getAttribute('unit');
+        }
+    }
+
+    /**
+     * Create a generic attribute DOM Element.
+     *
+     * @param string $value The generic attribute value.
+     * @param string $attributeName The generic attribute name.
+     * @param string $attributeType The generic attribute type.
+     * @param string $unit The generic attribute units.
+     * @return DOMElement The element (with no parent) that was created.
+     **/
+    public function _createAttribute($value, $attributeName, $attributeType=null, $unit=null) {
+        $el = $this->create(_GSC_Tags::$attribute, $value);
+        $el->setAttribute('name', $attributeName);
+
+        if ($attributeType != null) {
+            $el->setAttribute('unit', $unit);
+        }
+
+        if ($unit != null) {
+            $el->setAttribute('unit', $unit);
+        }
+
+        return $el;
+    }
+
+
+    /**
+     * Set the value of a named generic attribute.
+     *
+     * @param string $value The generic attribute value.
+     * @param string $attributeName The generic attribute name.
+     * @param string $attributeType The generic attribute type.
+     * @param string $unit The generic attribute units.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setAttribute($value, $attributeName, $attributeType=null, $unit=null) {
+        $el = $this->_createAttribute(
+            $value,
+            $attributeName,
+            $attributeType,
+            $unit
+        );
+        $this->model->appendChild($el);
+        return $el;
+    }
+
+    /**
+     * Get a list of all named generic groups.
+     *
+     * @return DOMElement DOM Element containing list of generic groups.
+     **/
+    public function getGroups() {
+        $groupTag = _GSC_Tags::$group;
+        return $this->model->getElementsByTagNameNS($groupTag[0], $groupTag[1]);
+    }
+
+    /**
+     * Get the named generic group.
+     *
+     * @param string $groupName The generic group name.
+     * @return DOMElement DOM Element of specific attribute in the case of
+     *                    a match, else null.
+     **/
+    public function getGroup($groupName) {
+        $groups = $this->getGroups();
+        $count = $groups->length;
+
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $groups->item($pos);
+            if ($child->getAttribute('name') == $groupName) {
+                return $child;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Set the value of a named generic attribute.
+     *
+     * @param string $groupName The generic group name.
+     * @param array $attributes The list of generic attributes in the group.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setGroup($groupName, $attributes) {
+        $groupTag = _GSC_Tags::$group;
+
+        $group = $this->getGroup($groupName);
+        if ($group == null) {
+            $group = $this->doc->createElementNS(
+                $groupTag[0],
+                $groupTag[1],
+                null
+            );
+            $this->model->appendChild($group);
+        }
+        $this->deleteAll(_GSC_Tags::$attribute, $group);
+
+        foreach ($attributes as $attribute) {
+            $group->appendChild($attribute);
+        }
+    }
 
     /**
      * Get the product title.
@@ -1501,6 +1777,25 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
+     * Get the age group of the product.
+     *
+     * @return string The Age Group of the product.
+     **/
+    public function getAgeGroup() {
+        return $this->getFirstValue(_GSC_Tags::$age_group);
+    }
+
+    /**
+     * Set the age group of the product.
+     *
+     * @param string $age_group The age group to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setAgeGroup($age_group) {
+        return $this->setFirstValue(_GSC_Tags::$age_group, $age_group);
+    }
+
+    /**
      * Get the author of the product.
      *
      * @return string The Author of the product.
@@ -1795,13 +2090,29 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
+     * Get the shipping weight unit of the product.
+     *
+     * @return string The shipping weight unit of the product.
+     **/
+    public function getShippingWeightUnit() {
+        $el = $this->getFirst(_GSC_Tags::$shipping_weight);
+        return $el->getAttribute('unit');
+    }
+
+    /**
      * Set the shipping weight of the product.
      *
      * @param string $shipping_weight The shipping weight to set.
+     * @param string $unit The unit of the weight to set. Defaults to null.
      * @return DOMElement The element that was changed.
      **/
-    public function setShippingWeight($shipping_weight) {
-        return $this->setFirstValue(_GSC_Tags::$shipping_weight, $shipping_weight);
+    public function setShippingWeight($shipping_weight, $unit=null) {
+        $el = $this->setFirstValue(_GSC_Tags::$shipping_weight, $shipping_weight);
+        if ($unit != null) {
+            // In the name of backwards compatibility
+            $el->setAttribute('unit', $unit);
+            return $el;
+        }
     }
 
     /**
@@ -2029,6 +2340,20 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
+     * Add a validate destination to the product.
+     *
+     * @param string $destination The destination to add.
+     * @return DOMElement The element that was created.
+     **/
+    function addValidateDestination($destination) {
+        $el = $this->getCreateFirst(_GSC_Tags::$control);
+        $child = $this->create(_GSC_Tags::$validate_destination);
+        $child->setAttribute('dest', $destination);
+        $el->appendChild($child);
+        return $child;
+    }
+
+    /**
      * Add an excluded destination to the product.
      *
      * @param string $destination The destination to add.
@@ -2159,7 +2484,7 @@ class GSC_Product extends _GSC_AtomElement {
              'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
              'xmlns:scp="http://schemas.google.com/structuredcontent/2009/products" '.
              'xmlns:batch="http://schemas.google.com/gdata/batch" '.
-             'xmlns:app="http://app" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
              '/>';
         $this->doc->loadXML($s);
         return $this->doc->documentElement;
@@ -2211,6 +2536,8 @@ class GSC_ProductList extends _GSC_AtomElement {
     /**
      * Get a specified query param value.
      *
+     * @param string $href The link to be parsed.
+     * @param string $desiredKey The key to be parsed from the query parameters.
      * @return string The query parameter if it is contained in the link,
      *                else the empty string.
      **/
