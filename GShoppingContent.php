@@ -17,8 +17,8 @@
  *   License for the specific language governing permissions and limitations
  *   under the License.
  *
- * @version 1
- * @author afshar@google.com
+ * @version 1.1
+ * @author afshar@google.com, dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
  * @example examples/InsertProduct.php Inserting a product
@@ -57,8 +57,8 @@ const BASE = 'https://content.googleapis.com/content/v1/';
  * Wraps the CURL response and information data of the response.
  *
  * @package GShoppingContent
- * @version 1
- * @author afshar@google.com
+ * @version 1.1
+ * @author afshar@google.com, dhermes@google.com
  **/
 class  _GSC_Response
 {
@@ -111,8 +111,8 @@ class  _GSC_Response
  * statically. It maintains no state.
  *
  * @package GShoppingContent
- * @version 1
- * @author afshar@google.com
+ * @version 1.1
+ * @author afshar@google.com, dhermes@google.com
  * @copyright Google Inc, 2011
  **/
 class _GSC_Http
@@ -246,7 +246,7 @@ class _GSC_Http
  * Handles making ClientLogin requests to authenticate and authorize.
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  **/
 class _GSC_ClientLogin
 {
@@ -286,7 +286,7 @@ class _GSC_ClientLogin
  * Base class for client errors.
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
  * @author afshar@google.com
  **/
@@ -297,9 +297,9 @@ class _GSC_ClientError extends Exception { }
  * Client for making requests to the Google Content API for Shopping.
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
- * @author afshar@google.com
+ * @author afshar@google.com, dhermes@google.com
  **/
 class GSC_Client
 {
@@ -552,9 +552,9 @@ class GSC_Client
  * Namespaces used by GSC
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
- * @author afshar@google.com
+ * @author afshar@google.com, dhermes@google.com
 **/
 class _GSC_Ns {
     /**
@@ -601,7 +601,7 @@ class _GSC_Ns {
  * name'
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
 **/
 class _GSC_Tags {
@@ -1219,9 +1219,9 @@ class _GSC_Tags {
  * Atom Parser
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
- * @author afshar@google.com
+ * @author afshar@google.com, dhermes@google.com
  **/
 class _GSC_AtomParser {
 
@@ -1285,13 +1285,26 @@ class _GSC_AtomParser {
  * $doc.
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
- * @author afshar@google.com
+ * @author afshar@google.com, dhermes@google.com
  **/
 abstract class _GSC_AtomElement
 {
+    /**
+     * DOMDocument for saving model to XML and creating elements with
+     * no parents. Defaults to the return value of createDoc.
+     *
+     * @var DOMDocument
+     **/
     public $doc;
+
+    /**
+     * Base DOMElement for the _GSC_AtomElement being built. Defaults
+     * to the return value of createModel.
+     *
+     * @var DOMElement
+     **/
     public $model;
 
     /**
@@ -1315,6 +1328,10 @@ abstract class _GSC_AtomElement
     /**
      * Get the first element of a tag type.
      *
+     * @param array $tag The tag describing the attribute we seek.
+     * @param DOMElement $parent An optional parent element to define where
+     *                           to search. Defaults to null and is replaced
+     *                           by $this->model if set to null.
      * @return Element.
      **/
     protected function getFirst($tag, $parent=null) {
@@ -1329,11 +1346,19 @@ abstract class _GSC_AtomElement
         }
     }
 
+    /**
+     * Get the first element of a tag type or create it if it doesn't exist.
+     *
+     * @param array $tag The tag describing the attribute we seek.
+     * @param DOMElement $el An optional parent element to be passed in to
+     *                       getFirst. Defaults to null.
+     * @return DOMElement that was created.
+     **/
     protected function getCreateFirst($tag, $parent=null) {
         $el = $parent ? $parent : $this->model;
         $child = $this->getFirst($tag, $parent);
         if ($child == null) {
-            $child = $this->doc->createElementNS($tag[0], $tag[1], null);
+            $child = $this->create($tag);
             $el->appendChild($child);
             return $child;
         }
@@ -1342,6 +1367,15 @@ abstract class _GSC_AtomElement
         }
     }
 
+    /**
+     * Get the value of the first element matching the tag.
+     *
+     * @param array $tag The tag describing the attribute we seek.
+     * @param DOMElement $el An optional parent element to be passed in to
+     *                       getFirst. Defaults to null.
+     * @return string Node value of the first element matching the tag, or
+     *                empty string if no match.
+     **/
     protected function getFirstValue($tag, $el=null) {
         $child = $this->getFirst($tag, $el);
         if ($child) {
@@ -1352,18 +1386,42 @@ abstract class _GSC_AtomElement
         }
     }
 
+    /**
+     * Set the value of the first element matching the tag.
+     *
+     * @param array $tag The tag describing the attribute we seek to find
+     *                   or create.
+     * @param array $val The value we want to set.
+     * @param DOMElement $parent An optional parent element to be passed in to
+     *                           getCreateFirst. Defaults to null.
+     * @return DOMElement The element that was changed or created.
+     **/
     protected function setFirstValue($tag, $val, $parent=null) {
         $child = $this->getCreateFirst($tag, $parent);
         $child->nodeValue = $val;
         return $child;
     }
 
+    /**
+     * Get all elements matching the tag.
+     *
+     * @param array $tag The tag describing the attribute.
+     * @param DOMElement $parent An optional parent element. Defaults to null.
+     * @return DOMNodeList A list of all matching DOMElements.
+     **/
     function getAll($tag, $parent=null) {
         $el = $parent ? $parent : $this->model;
         $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
         return $list;
     }
 
+    /**
+     * Delete all elements matching the tag.
+     *
+     * @param array $tag The tag describing the attribute.
+     * @param DOMElement $parent An optional parent element. Defaults to null.
+     * @return void
+     **/
     function deleteAll($tag, $parent=null) {
         $el = $parent ? $parent : $this->model;
         $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
@@ -1374,6 +1432,13 @@ abstract class _GSC_AtomElement
         }
     }
 
+    /**
+     * Get the first atom link attribute with a specified rel= value.
+     *
+     * @param string $rel The value of rel= we seek to find.
+     * @return DOMElement The atom link attribute matching the rel value,
+     *                    else null if there is no match.
+     **/
     function getLink($rel) {
         $list = $this->model->getElementsByTagNameNS(_GSC_Ns::atom, 'link');
         $count = $list->length;
@@ -1487,6 +1552,11 @@ abstract class _GSC_AtomElement
         return $el;
     }
 
+    /**
+     * Create a default DOMDocument for creating DOMElements.
+     *
+     * @return DOMDocument The default DOM factory document.
+     **/
     function createDoc() {
         $doc = new DOMDocument();
         $doc->preserveWhiteSpace = false;
@@ -1494,15 +1564,32 @@ abstract class _GSC_AtomElement
         return $doc;
     }
 
+    /**
+     * Get a string representation of the XML DOM in the model.
+     *
+     * @return string The XML in $this->model as string.
+     **/
     function toXML() {
         return $this->doc->saveXML($this->model);
     }
 
+    /**
+     * Use the DOC factory to create a DOMElement corresponding to the tag.
+     *
+     * @param array $tag The tag describing the attribute we seek.
+     * @param string $content The value to be placed in the created attribute.
+     *                        Defaults to null.
+     * @return DOMElement The DOM Element holding the created attribute.
+     **/
     function create($tag, $content=null) {
         return $this->doc->createElementNS($tag[0], $tag[1], $content);
     }
 
-
+    /**
+     * Create a default DOM Element for the atom element being built.
+     *
+     * @return DOMElement The default DOM element parent for the atom element.
+     **/
     abstract function createModel();
 }
 
@@ -1511,9 +1598,9 @@ abstract class _GSC_AtomElement
  * GSC_Product
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
- * @author afshar@google.com
+ * @author afshar@google.com, dhermes@google.com
  **/
 class GSC_Product extends _GSC_AtomElement {
 
@@ -1608,7 +1695,6 @@ class GSC_Product extends _GSC_AtomElement {
         return $el;
     }
 
-
     /**
      * Set the value of a named generic attribute.
      *
@@ -1667,15 +1753,9 @@ class GSC_Product extends _GSC_AtomElement {
      * @return DOMElement The element that was changed.
      **/
     public function setGroup($groupName, $attributes) {
-        $groupTag = _GSC_Tags::$group;
-
         $group = $this->getGroup($groupName);
         if ($group == null) {
-            $group = $this->doc->createElementNS(
-                $groupTag[0],
-                $groupTag[1],
-                null
-            );
+            $group = $this->create(_GSC_Tags::$group);
             $this->model->appendChild($group);
         }
         $this->deleteAll(_GSC_Tags::$attribute, $group);
@@ -2658,9 +2738,9 @@ class GSC_Product extends _GSC_AtomElement {
  * GSC_ProductList
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
- * @author afshar@google.com
+ * @author afshar@google.com, dhermes@google.com
  **/
 class GSC_ProductList extends _GSC_AtomElement {
 
@@ -2759,7 +2839,7 @@ class GSC_ProductList extends _GSC_AtomElement {
  * GSC_ManagedAccount
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
  * @author dhermes@google.com
  **/
@@ -2895,7 +2975,7 @@ class GSC_ManagedAccount extends _GSC_AtomElement {
  * GSC_ManagedAccountList
  *
  * @package GShoppingContent
- * @version 1
+ * @version 1.1
  * @copyright Google Inc, 2011
  * @author dhermes@google.com
  **/
