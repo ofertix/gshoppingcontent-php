@@ -22,6 +22,7 @@
  * @copyright Google Inc, 2011
  * @package GShoppingContent
  * @example examples/InsertProduct.php Inserting a product
+ * @example examples/InsertBatchProduct.php Making a batch request
  **/
 
 
@@ -476,6 +477,49 @@ class GSC_Client
     }
 
     /**
+     * Get all subaccounts.
+     *
+     * @param string $maxResults The max results desired. Defaults to null.
+     * @param string $startIndex The start index for the query. Defaults to null.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function getAccounts($maxResults=null, $startIndex=null) {
+        $accountsUri = $this->getManagedAccountsUri();
+
+        $queryParams = array();
+        if ($maxResults != null) {
+            array_push($queryParams, 'max-results=' . $maxResults);
+        }
+        if ($startIndex != null) {
+            array_push($queryParams, 'start-index=' . $startIndex);
+        }
+
+        if (count($queryParams) > 0) {
+            $accountsUri .= '?' . join('&', $queryParams);
+        }
+
+        $resp = _GSC_Http::get(
+            $accountsUri,
+            $this->getTokenHeader()
+        );
+        return _GSC_AtomParser::parseManagedAccounts($resp->body);
+    }
+
+    /**
+     * Get a subaccount.
+     *
+     * @param string $accountId The account id.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function getAccount($accountId) {
+        $resp = _GSC_Http::get(
+            $this->getManagedAccountsUri($accountId),
+            $this->getTokenHeader()
+          );
+        return _GSC_AtomParser::parseManagedAccounts($resp->body);
+    }
+
+    /**
      * Insert a subaccount.
      *
      * @param GSC_ManagedAccount $account The account to insert.
@@ -529,10 +573,15 @@ class GSC_Client
     /**
      * Create a URI for the managed accounts feed for this merchant.
      *
+     * @param string $accountId The account id. Defaults to null.
      * @return string The managedaccounts URI.
      **/
-    public function getManagedAccountsUri() {
-        return BASE . $this->merchantId . '/managedaccounts';
+    public function getManagedAccountsUri($accountId=null) {
+        $result = BASE . $this->merchantId . '/managedaccounts';
+        if ($accountId != null) {
+            $result .= '/' . $accountId;
+        }
+        return $result;
     }
 
     /**
@@ -1756,6 +1805,7 @@ class GSC_Product extends _GSC_AtomElement {
         $group = $this->getGroup($groupName);
         if ($group == null) {
             $group = $this->create(_GSC_Tags::$group);
+            $group->setAttribute('name', $groupName);
             $this->model->appendChild($group);
         }
         $this->deleteAll(_GSC_Tags::$attribute, $group);
