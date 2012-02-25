@@ -396,7 +396,7 @@ class GSC_Client
      * @param string $language The language specific to the product.
      * @return _GSC_Response The HTTP response.
      */
-    public function get($id, $country, $language) {
+    public function getProduct($id, $country, $language) {
         $link = $this->getProductUri($id, $country, $language);
         return $this->getFromLink($link);
     }
@@ -407,7 +407,7 @@ class GSC_Client
      * @param GSC_Product $product The product to insert.
      * @return _GSC_Response The HTTP response.
      */
-    public function insert($product) {
+    public function insertProduct($product) {
         $resp = _GSC_Http::post(
             $this->getFeedUri(),
             $product->toXML(),
@@ -423,7 +423,7 @@ class GSC_Client
      *                    Must have rel='edit' set.
      * @return _GSC_Response The HTTP response.
      */
-    public function update($product) {
+    public function updateProduct($product) {
         $resp = _GSC_Http::put(
             $product->getEditLink(),
             $product->toXML(),
@@ -456,7 +456,7 @@ class GSC_Client
      *                    Must have rel='edit' set.
      * @return _GSC_Response The HTTP response.
      */
-    public function delete($product) {
+    public function deleteProduct($product) {
         $this->deleteFromLink($product->getEditLink());
     }
 
@@ -473,6 +473,21 @@ class GSC_Client
             $this->getTokenHeader()
           );
         return _GSC_AtomParser::parse($resp->body);
+    }
+
+    /**
+     * Insert a subaccount.
+     *
+     * @param GSC_ManagedAccount $account The account to insert.
+     * @return GSC_ManagedAccount The inserted account from the response.
+     */
+    public function insertAccount($account) {
+        $resp = _GSC_Http::post(
+            $this->getManagedAccountsUri(),
+            $account->toXML(),
+            $this->getTokenHeader()
+          );
+        return _GSC_AtomParser::parseManagedAccounts($resp->body);
     }
 
     /**
@@ -512,6 +527,15 @@ class GSC_Client
     }
 
     /**
+     * Create a URI for the managed accounts feed for this merchant.
+     *
+     * @return string The managedaccounts URI.
+     **/
+    public function getManagedAccountsUri() {
+        return BASE . $this->merchantId . '/managedaccounts';
+    }
+
+    /**
      * Create a header from the authorization token.
      *
      * @return string The authorization header.
@@ -542,6 +566,11 @@ class _GSC_Ns {
      * Atom Publishing Protocol namespace.
      **/
     const app = 'http://www.w3.org/2007/app';
+
+    /**
+     * OpenSearch namespace.
+     **/
+    const openSearch = 'http://a9.com/-/spec/opensearch/1.1/';
 
     /**
      * Google Data namespace.
@@ -604,15 +633,24 @@ class _GSC_Tags {
      * The <atom:title> tag.
      *
      * @var array
-     * @see GSC_Product::setTitle(), GSC_Product::getTitle()
+     * @see _GSC_AtomElement::setTitle(), _GSC_AtomElement::getTitle()
      **/
     public static $title = array(_GSC_Ns::atom, 'title');
+
+    /**
+     * The <atom:id> tag.
+     *
+     * @var array
+     * @see _GSC_AtomElement::getAtomId()
+     **/
+    public static $atomId = array(_GSC_Ns::atom, 'id');
 
     /**
      * The <atom:content> tag.
      *
      * @var array
-     * @see GSC_Product::setDescription(), GSC_Product::getDescription()
+     * @see _GSC_AtomElement::setDescription(),
+     *      _GSC_AtomElement::getDescription()
      **/
     public static $content = array(_GSC_Ns::atom, 'content');
 
@@ -625,10 +663,25 @@ class _GSC_Tags {
     public static $link = array(_GSC_Ns::atom, 'link');
 
     /**
+     * <atom:published> element
+     *
+     * @var array
+     * @see _GSC_AtomElement::getPublished()
+     **/
+    public static $published = array(_GSC_Ns::atom, 'published');
+
+    /**
+     * <atom:updated> element
+     *
+     * @var array
+     * @see _GSC_AtomElement::getUpdated()
+     **/
+    public static $updated = array(_GSC_Ns::atom, 'updated');
+
+    /**
      * <gd:errors> element
      *
      * @var array
-     * @see GSC_Product::, GSC_Product::
      **/
     public static $errors = array(_GSC_Ns::gd, 'errors');
 
@@ -666,6 +719,30 @@ class _GSC_Tags {
      * @var array
      **/
     public static $debugInfo = array(_GSC_Ns::gd, 'debugInfo');
+
+    /**
+     * <openSearch:startIndex> element
+     *
+     * @var array
+     * @see GSC_ManagedAccountList::getStartIndex()
+     **/
+    public static $startIndex = array(_GSC_Ns::openSearch, 'startIndex');
+
+    /**
+     * <openSearch:totalResults> element
+     *
+     * @var array
+     * @see GSC_ManagedAccountList::getTotalResults()
+     **/
+    public static $totalResults = array(_GSC_Ns::openSearch, 'totalResults');
+
+    /**
+     * <app:edited> element
+     *
+     * @var array
+     * @see GSC_ManagedAccount::getEdited()
+     **/
+    public static $edited = array(_GSC_Ns::app, 'edited');
 
     /**
      * <app:control> element
@@ -772,6 +849,41 @@ class _GSC_Tags {
      * @see GSC_Product::setExpirationDate(), GSC_Product::getExpirationDate()
      **/
     public static $expiration_date = array(_GSC_Ns::sc, 'expiration_date');
+
+    /**
+     * <sc:account_status> element
+     *
+     * @var array
+     * @see GSC_ManagedAccount::getAccountStatus()
+     **/
+    public static $account_status = array(_GSC_Ns::sc, 'account_status');
+
+    /**
+     * <sc:adult_content> element
+     *
+     * @var array
+     * @see GSC_ManagedAccount::setAdultContent(),
+     *      GSC_ManagedAccount::getAdultContent()
+     **/
+    public static $adult_content = array(_GSC_Ns::sc, 'adult_content');
+
+    /**
+     * <sc:internal_id> element
+     *
+     * @var array
+     * @see GSC_ManagedAccount::setInternalId(),
+     *      GSC_ManagedAccount::getInternalId()
+     **/
+    public static $internal_id = array(_GSC_Ns::sc, 'internal_id');
+
+    /**
+     * <sc:reviews_url> element
+     *
+     * @var array
+     * @see GSC_ManagedAccount::setReviewsUrl(),
+     *      GSC_ManagedAccount::getReviewsUrl()
+     **/
+    public static $reviews_url = array(_GSC_Ns::sc, 'reviews_url');
 
     /**
      * <scp:price> element
@@ -1114,22 +1226,50 @@ class _GSC_Tags {
 class _GSC_AtomParser {
 
     /**
+     * Parse some XML into a DOM Element.
+     *
+     * @param string $xml The XML to parse.
+     * @return DOMElement A DOM element appropriate to the XML.
+     **/
+    public function _xmlToDOM($xml) {
+        $doc = new DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+        $doc->loadXML($xml);
+        return $doc;
+    }
+
+    /**
      * Parse some XML into our data model.
      *
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
      **/
     public static function parse($xml) {
-        $doc = new DOMDocument();
-        $doc->preserveWhiteSpace = false;
-        $doc->formatOutput = true;
-        $doc->loadXML($xml);
+        $doc = _GSC_AtomParser::_xmlToDOM($xml);
         $root = $doc->documentElement;
         if ($root->tagName == 'entry') {
             return new GSC_Product($doc, $root);
         }
         else if ($root->tagName == 'feed') {
             return new GSC_ProductList($doc, $root);
+        }
+    }
+
+    /**
+     * Parse some XML into our data model for the managedaccounts feed.
+     *
+     * @param string $xml The XML to parse.
+     * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     **/
+    public static function parseManagedAccounts($xml) {
+        $doc = _GSC_AtomParser::_xmlToDOM($xml);
+        $root = $doc->documentElement;
+        if ($root->tagName == 'entry') {
+            return new GSC_ManagedAccount($doc, $root);
+        }
+        else if ($root->tagName == 'feed') {
+            return new GSC_ManagedAccountList($doc, $root);
         }
     }
 
@@ -1244,6 +1384,107 @@ abstract class _GSC_AtomElement
             }
         }
         return null;
+    }
+
+    /**
+     * Get the edit link.
+     *
+     * @return string The edit link.
+     **/
+    function getEditLink() {
+        $el = $this->getLink('edit');
+        if ($el == null) {
+            return '';
+        }
+        else {
+            return $el->getAttribute('href');
+        }
+    }
+
+    /**
+     * Set the edit link.
+     *
+     * @param string $link The edit link to add.
+     * @param string $type The type of the added link.
+     * @return DOMElement The element that was changed or created.
+     **/
+    function setEditLink($link, $type) {
+        $el = $this->getLink('edit');
+        if ($el == null) {
+            $el = $this->create(_GSC_Tags::$link);
+            $el->setAttribute('rel', 'edit');
+            $this->model->appendChild($el);
+        }
+
+        $el->setAttribute('href', $link);
+        $el->setAttribute('type', $type);
+    }
+
+    /**
+     * Get the atom ID.
+     *
+     * @return string The atom ID.
+     **/
+    function getAtomId() {
+        return $this->getFirstValue(_GSC_Tags::$atomId);
+    }
+
+    /**
+     * Get the published date.
+     *
+     * @return string The published date.
+     **/
+    function getPublished() {
+        return $this->getFirstValue(_GSC_Tags::$published);
+    }
+
+    /**
+     * Get the updated date.
+     *
+     * @return string The updated date.
+     **/
+    function getUpdated() {
+        return $this->getFirstValue(_GSC_Tags::$updated);
+    }
+
+    /**
+     * Get the title.
+     *
+     * @return string The title.
+     **/
+    public function getTitle() {
+        return $this->getFirstValue(_GSC_Tags::$title);
+    }
+
+    /**
+     * Set the title.
+     *
+     * @param string $title The title to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setTitle($title) {
+        return $this->setFirstValue(_GSC_Tags::$title, $title);
+    }
+
+    /**
+     * Get the description.
+     *
+     * @return string The description.
+     **/
+    function getDescription() {
+        return $this->getFirstValue(_GSC_Tags::$content);
+    }
+
+    /**
+     * Set the description.
+     *
+     * @param string $description The description to set.
+     * @return DOMElement The element that was changed.
+     **/
+    function setDescription($description) {
+        $el = $this->setFirstValue(_GSC_Tags::$content, $description);
+        $el->setAttribute('type', 'text');
+        return $el;
     }
 
     function createDoc() {
@@ -1445,25 +1686,6 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
-     * Get the product title.
-     *
-     * @return string The product title.
-     **/
-    public function getTitle() {
-        return $this->getFirstValue(_GSC_Tags::$title);
-    }
-
-    /**
-     * Set the product title.
-     *
-     * @param string $title The title to set.
-     * @return DOMElement The element that was changed.
-     **/
-    public function setTitle($title) {
-        return $this->setFirstValue(_GSC_Tags::$title, $title);
-    }
-
-    /**
      * Get the price of the product.
      *
      * @return string The price of the product.
@@ -1492,27 +1714,6 @@ class GSC_Product extends _GSC_AtomElement {
     public function setPrice($price, $unit) {
         $el = $this->setFirstValue(_GSC_Tags::$price, $price);
         $el->setAttribute('unit', $unit);
-        return $el;
-    }
-
-    /**
-     * Get the description of the product.
-     *
-     * @return string The description of the product.
-     **/
-    function getDescription() {
-        return $this->getFirstValue(_GSC_Tags::$content);
-    }
-
-    /**
-     * Set the description of the product.
-     *
-     * @param string $description The description to set.
-     * @return DOMElement The element that was changed.
-     **/
-    function setDescription($description) {
-        $el = $this->setFirstValue(_GSC_Tags::$content, $description);
-        $el->setAttribute('type', 'text');
         return $el;
     }
 
@@ -1636,49 +1837,12 @@ class GSC_Product extends _GSC_AtomElement {
         $el = $this->getLink('alternate');
         if ($el == null) {
             $el = $this->create(_GSC_Tags::$link);
-            $el->setAttribute('href', $link);
             $el->setAttribute('rel', 'alternate');
             $el->setAttribute('type', 'text/html');
             $this->model->appendChild($el);
         }
-        else {
-            $el->setAttribute('href', $link);
-        }
-    }
 
-    /**
-     * Get the edit link for the product.
-     *
-     * @return string The edit link for the product.
-     **/
-    function getEditLink() {
-        $el = $this->getLink('edit');
-        if ($el == null) {
-            return '';
-        }
-        else {
-            return $el->getAttribute('href');
-        }
-    }
-
-    /**
-     * Set the edit link for the product.
-     *
-     * @param string $link The edit link to add.
-     * @return DOMElement The element that was changed or created.
-     **/
-    function setEditLink($link) {
-        $el = $this->getLink('edit');
-        if ($el == null) {
-            $el = $this->create(_GSC_Tags::$link);
-            $el->setAttribute('href', $link);
-            $el->setAttribute('rel', 'edit');
-            $el->setAttribute('type', 'application/atom+xml');
-            $this->model->appendChild($el);
-        }
-        else {
-            $el->setAttribute('href', $link);
-        }
+        $el->setAttribute('href', $link);
     }
 
     /**
@@ -2463,14 +2627,12 @@ class GSC_Product extends _GSC_AtomElement {
     /**
      * Get the batch status code.
      *
-     * @return sting The status code for this batch operation
+     * @return string The status code for this batch operation
      **/
     function getBatchStatus() {
-      $el = $this->getFirst(_GSC_Tags::$status);
-      return $el->getAttribute('code');
+        $el = $this->getFirst(_GSC_Tags::$status);
+        return $el->getAttribute('code');
     }
-
-
 
     /**
      * Create the initial model when none is provided.
@@ -2489,7 +2651,6 @@ class GSC_Product extends _GSC_AtomElement {
         $this->doc->loadXML($s);
         return $this->doc->documentElement;
     }
-
 }
 
 
@@ -2586,12 +2747,211 @@ class GSC_ProductList extends _GSC_AtomElement {
              'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
              'xmlns:scp="http://schemas.google.com/structuredcontent/2009/products" '.
              'xmlns:batch="http://schemas.google.com/gdata/batch" '.
-             'xmlns:app="http://app" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
              '/>';
         $this->doc->loadXML($s);
         return $this->doc->documentElement;
     }
 }
 
+
+/**
+ * GSC_ManagedAccount
+ *
+ * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
+ * @author dhermes@google.com
+ **/
+class GSC_ManagedAccount extends _GSC_AtomElement {
+
+    /**
+     * Get the time of last edit.
+     *
+     * @return string The time of the last edit.
+     **/
+    function getEdited() {
+        return $this->getFirstValue(_GSC_Tags::$edited);
+    }
+
+    /**
+     * Get the account status.
+     *
+     * @return string The account status.
+     **/
+    function getAccountStatus() {
+        return $this->getFirstValue(_GSC_Tags::$account_status);
+    }
+
+    /**
+     * Get the adult content.
+     *
+     * @return string The adult content.
+     **/
+    function getAdultContent() {
+        return $this->getFirstValue(_GSC_Tags::$adult_content);
+    }
+
+    /**
+     * Set the adult content.
+     *
+     * @param string $adult_content The adult content.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setAdultContent($adult_content) {
+        return $this->setFirstValue(_GSC_Tags::$adult_content, $adult_content);
+    }
+
+    /**
+     * Get the internal id.
+     *
+     * @return string The internal id.
+     **/
+    function getInternalId() {
+        return $this->getFirstValue(_GSC_Tags::$internal_id);
+    }
+
+    /**
+     * Set the internal id.
+     *
+     * @param string $internal_id The internal id.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setInternalId($internal_id) {
+        return $this->setFirstValue(_GSC_Tags::$internal_id, $internal_id);
+    }
+
+    /**
+     * Get the reviews url.
+     *
+     * @return string The url with reviews.
+     **/
+    function getReviewsUrl() {
+        return $this->getFirstValue(_GSC_Tags::$reviews_url);
+    }
+
+    /**
+     * Set the review url
+     *
+     * @param string $reviews_url The url with reviews.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setReviewsUrl($reviews_url) {
+        return $this->setFirstValue(_GSC_Tags::$reviews_url, $reviews_url);
+    }
+
+    /**
+     * Get the link for the subaccount.
+     *
+     * @return string The link for the subaccount.
+     **/
+    function getAccountLink() {
+        $el = $this->getLink('alternate');
+        if ($el == null) {
+            return '';
+        }
+        else {
+            return $el->getAttribute('href');
+        }
+    }
+
+    /**
+     * Set the Link for the subaccount.
+     *
+     * @param string $link The subaccount link to add.
+     * @return DOMElement The element that was changed or created.
+     **/
+    function setAccountLink($link) {
+        $el = $this->getLink('alternate');
+        if ($el == null) {
+            $el = $this->create(_GSC_Tags::$link);
+            $el->setAttribute('rel', 'alternate');
+            $el->setAttribute('type', 'text/html');
+            $this->model->appendChild($el);
+        }
+
+        $el->setAttribute('href', $link);
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<entry '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
+             'xmlns:gd="http://schemas.google.com/g/2005" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_ManagedAccountList
+ *
+ * @package GShoppingContent
+ * @version 1
+ * @copyright Google Inc, 2011
+ * @author dhermes@google.com
+ **/
+class GSC_ManagedAccountList extends _GSC_AtomElement {
+
+    /**
+     * Get the start index of search results.
+     *
+     * @return string The start index of search results.
+     **/
+    function getStartIndex() {
+        return $this->getFirstValue(_GSC_Tags::$startIndex);
+    }
+
+    /**
+     * Get the total number of search results.
+     *
+     * @return string The total number of search results.
+     **/
+    function getTotalResults() {
+        return $this->getFirstValue(_GSC_Tags::$totalResults);
+    }
+
+    /**
+     * Get the list of accounts.
+     *
+     * @return array List of GSC_ManagedAccount from the feed.
+     **/
+    public function getAccounts() {
+        $list = $this->getAll(_GSC_Tags::$entry);
+        $count = $list->length;
+        $accounts = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $product = new GSC_ManagedAccount($this->doc, $child);
+            array_push($accounts, $account);
+        }
+        return $accounts;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<feed '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
+             'xmlns:gd="http://schemas.google.com/g/2005" '.
+             'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
 
 ?>
