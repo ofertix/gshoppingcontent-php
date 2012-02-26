@@ -434,7 +434,7 @@ class GSC_Client
     }
 
     /**
-     * Delete a product from a link.
+     * Send a delete request to a link.
      *
      * @param string $link The edit link for the product.
      * @return _GSC_Response The HTTP response.
@@ -453,7 +453,7 @@ class GSC_Client
     /**
      * Delete a product.
      *
-     * @param GSC_Product $product The product to update.
+     * @param GSC_Product $product The product to delete.
      *                    Must have rel='edit' set.
      * @return _GSC_Response The HTTP response.
      */
@@ -541,6 +541,33 @@ class GSC_Client
      **/
     public function getFeedUri() {
         return BASE . $this->merchantId . '/items/products/schema/';
+    }
+
+    /**
+     * Update a subaccount.
+     *
+     * @param GSC_ManagedAccount $account The account to update.
+     *                                    Must have rel='edit' set.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function updateAccount($account) {
+        $resp = _GSC_Http::put(
+            $account->getEditLink(),
+            $account->toXML(),
+            $this->getTokenHeader()
+          );
+        return _GSC_AtomParser::parseManagedAccounts($resp->body);
+    }
+
+    /**
+     * Delete a subaccount.
+     *
+     * @param GSC_ManagedAccount $account The account to delete.
+     *                                    Must have rel='edit' set.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function deleteAccount($account) {
+        $this->deleteFromLink($account->getEditLink());
     }
 
     /**
