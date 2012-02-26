@@ -758,6 +758,7 @@ class _GSC_Tags {
      * <gd:errors> element
      *
      * @var array
+     * @see GSC_Errors
      **/
     public static $errors = array(_GSC_Ns::gd, 'errors');
 
@@ -765,6 +766,7 @@ class _GSC_Tags {
      * <gd:error> element
      *
      * @var array
+     * @see GSC_Errors::getErrors()
      **/
     public static $error = array(_GSC_Ns::gd, 'error');
 
@@ -772,6 +774,7 @@ class _GSC_Tags {
      * <gd:domain> element
      *
      * @var array
+     * @see GSC_ErrorElement::getDomain()
      **/
     public static $domain = array(_GSC_Ns::gd, 'domain');
 
@@ -779,6 +782,7 @@ class _GSC_Tags {
      * <gd:code> element
      *
      * @var array
+     * @see GSC_ErrorElement::getCode()
      **/
     public static $code = array(_GSC_Ns::gd, 'code');
 
@@ -786,6 +790,7 @@ class _GSC_Tags {
      * <gd:location> element
      *
      * @var array
+     * @see GSC_ErrorElement::getLocation(), GSC_ErrorElement::getLocationType()
      **/
     public static $location = array(_GSC_Ns::gd, 'location');
 
@@ -793,6 +798,7 @@ class _GSC_Tags {
      * <gd:internalReason> element
      *
      * @var array
+     * @see GSC_ErrorElement::getInternalReason()
      **/
     public static $internalReason = array(_GSC_Ns::gd, 'internalReason');
 
@@ -800,8 +806,16 @@ class _GSC_Tags {
      * <gd:debugInfo> element
      *
      * @var array
+     * @see GSC_ErrorElement::getDebugInfo()
      **/
     public static $debugInfo = array(_GSC_Ns::gd, 'debugInfo');
+
+    /**
+     * <gd:etag> element
+     *
+     * @var array
+     **/
+    public static $etag = array(_GSC_Ns::gd, 'etag');
 
     /**
      * <openSearch:startIndex> element
@@ -3183,6 +3197,15 @@ class GSC_ErrorElement extends _GSC_AtomElement {
      **/
     function getInternalReason() {
         return $this->getFirstValue(_GSC_Tags::$internalReason);
+    }
+
+    /**
+     * Get the debug info of the error.
+     *
+     * @return string The debug info of the error.
+     **/
+    function getDebugInfo() {
+        return $this->getFirstValue(_GSC_Tags::$debugInfo);
     }
 
     /**
