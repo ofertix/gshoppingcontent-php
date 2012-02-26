@@ -783,6 +783,13 @@ class _GSC_Tags {
     public static $code = array(_GSC_Ns::gd, 'code');
 
     /**
+     * <gd:location> element
+     *
+     * @var array
+     **/
+    public static $location = array(_GSC_Ns::gd, 'location');
+
+    /**
      * <gd:internalReason> element
      *
      * @var array
@@ -1330,6 +1337,9 @@ class _GSC_AtomParser {
         else if ($root->tagName == 'feed') {
             return new GSC_ProductList($doc, $root);
         }
+        else if ($root->tagName == 'errors') {
+            return new GSC_Errors($doc, $root);
+        }
     }
 
     /**
@@ -1346,6 +1356,9 @@ class _GSC_AtomParser {
         }
         else if ($root->tagName == 'feed') {
             return new GSC_ManagedAccountList($doc, $root);
+        }
+        else if ($root->tagName == 'errors') {
+            return new GSC_Errors($doc, $root);
         }
     }
 
@@ -3106,6 +3119,119 @@ class GSC_ManagedAccountList extends _GSC_AtomElement {
              'xmlns:gd="http://schemas.google.com/g/2005" '.
              'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
              '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_ErrorElement
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ * @copyright Google Inc, 2011
+ * @author dhermes@google.com
+ **/
+class GSC_ErrorElement extends _GSC_AtomElement {
+
+    /**
+     * Get the domain of the error.
+     *
+     * @return string The domain of the error.
+     **/
+    function getDomain() {
+        return $this->getFirstValue(_GSC_Tags::$domain);
+    }
+
+    /**
+     * Get the code of the error.
+     *
+     * @return string The code of the error.
+     **/
+    function getCode() {
+        return $this->getFirstValue(_GSC_Tags::$code);
+    }
+
+    /**
+     * Get the location of the error.
+     *
+     * @return string The location of the error.
+     **/
+    function getLocation() {
+        return $this->getFirstValue(_GSC_Tags::$location);
+    }
+
+    /**
+     * Get the location type of the error.
+     *
+     * @return string The location type of the error.
+     **/
+    public function getLocationType() {
+        $el = $this->getFirst(_GSC_Tags::$location);
+        if ($el) {
+            return $el->getAttribute('type');
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Get the internal reason of the error.
+     *
+     * @return string The internal reason of the error.
+     **/
+    function getInternalReason() {
+        return $this->getFirstValue(_GSC_Tags::$internalReason);
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<error xmlns="http://schemas.google.com/g/2005" />';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_Errors
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ * @copyright Google Inc, 2011
+ * @author dhermes@google.com
+ **/
+class GSC_Errors extends _GSC_AtomElement {
+
+    /**
+     * Get the list of errors.
+     *
+     * @return array List of GSC_ErrorElement's from the feed.
+     **/
+    public function getErrors() {
+        $list = $this->getAll(_GSC_Tags::$error);
+        $count = $list->length;
+        $errors = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $error = new GSC_ErrorElement($this->doc, $child);
+            array_push($errors, $error);
+        }
+        return $errors;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<errors xmlns="http://schemas.google.com/g/2005" />';
         $this->doc->loadXML($s);
         return $this->doc->documentElement;
     }
