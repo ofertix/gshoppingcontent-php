@@ -925,7 +925,7 @@ class _GSC_Tags {
      * <openSearch:startIndex> element
      *
      * @var array
-     * @see GSC_ManagedAccountList::getStartIndex()
+     * @see _GSC_AtomElement::getStartIndex()
      **/
     public static $startIndex = array(_GSC_Ns::openSearch, 'startIndex');
 
@@ -933,7 +933,7 @@ class _GSC_Tags {
      * <openSearch:totalResults> element
      *
      * @var array
-     * @see GSC_ManagedAccountList::getTotalResults()
+     * @see _GSC_AtomElement::getTotalResults()
      **/
     public static $totalResults = array(_GSC_Ns::openSearch, 'totalResults');
 
@@ -1149,6 +1149,72 @@ class _GSC_Tags {
      *      GSC_ManagedAccount::getReviewsUrl()
      **/
     public static $reviews_url = array(_GSC_Ns::sc, 'reviews_url');
+
+    /**
+     * <sc:feed_file_name> element
+     *
+     * @var array
+     * @see GSC_Datafeed::setFeedFileName(), GSC_Datafeed::getFeedFileName()
+     **/
+    public static $feed_file_name = array(_GSC_Ns::sc, 'feed_file_name');
+
+    /**
+     * <sc:attribute_language> element
+     *
+     * @var array
+     * @see GSC_Datafeed::setAttributeLanguage(),
+     *      GSC_Datafeed::getAttributeLanguage()
+     **/
+    public static $attribute_language = array(_GSC_Ns::sc, 'attribute_language');
+
+    /**
+     * <sc:file_format> element
+     *
+     * @var array
+     * @see GSC_Datafeed::setFileFormat(), GSC_Datafeed::getFileFormat()
+     **/
+    public static $file_format = array(_GSC_Ns::sc, 'file_format');
+
+    /**
+     * <sc:encoding> element
+     *
+     * @var array
+     * @see GSC_Datafeed::setEncoding(), GSC_Datafeed::getEncoding()
+     **/
+    public static $encoding = array(_GSC_Ns::sc, 'encoding');
+
+    /**
+     * <sc:delimiter> element
+     *
+     * @var array
+     * @see GSC_Datafeed::setDelimiter(), GSC_Datafeed::getDelimiter()
+     **/
+    public static $delimiter = array(_GSC_Ns::sc, 'delimiter');
+
+    /**
+     * <sc:use_quoted_fields> element
+     *
+     * @var array
+     * @see GSC_Datafeed::setUseQuotedFields(),
+     *      GSC_Datafeed::getUseQuotedFields()
+     **/
+    public static $use_quoted_fields = array(_GSC_Ns::sc, 'use_quoted_fields');
+
+    /**
+     * <sc:feed_type> element
+     *
+     * @var array
+     * @see GSC_Datafeed::getFeedType()
+     **/
+    public static $feed_type = array(_GSC_Ns::sc, 'feed_type');
+
+    /**
+     * <sc:processing_status> element
+     *
+     * @var array
+     * @see GSC_Datafeed::getProcessingStatus()
+     **/
+    public static $processing_status = array(_GSC_Ns::sc, 'processing_status');
 
     /**
      * <scp:price> element
@@ -1859,6 +1925,33 @@ abstract class _GSC_AtomElement
         $el = $this->setFirstValue(_GSC_Tags::$content, $description);
         $el->setAttribute('type', 'text');
         return $el;
+    }
+
+    /**
+     * Get the start index of search results.
+     *
+     * @return string The start index of search results.
+     **/
+    function getStartIndex() {
+        return $this->getFirstValue(_GSC_Tags::$startIndex);
+    }
+
+    /**
+     * Get the total number of search results.
+     *
+     * @return string The total number of search results.
+     **/
+    function getTotalResults() {
+        return $this->getFirstValue(_GSC_Tags::$totalResults);
+    }
+
+    /**
+     * Get the time of last edit.
+     *
+     * @return string The time of the last edit.
+     **/
+    function getEdited() {
+        return $this->getFirstValue(_GSC_Tags::$edited);
     }
 
     /**
@@ -3282,15 +3375,6 @@ class GSC_ProductList extends _GSC_AtomElement {
 class GSC_ManagedAccount extends _GSC_AtomElement {
 
     /**
-     * Get the time of last edit.
-     *
-     * @return string The time of the last edit.
-     **/
-    function getEdited() {
-        return $this->getFirstValue(_GSC_Tags::$edited);
-    }
-
-    /**
      * Get the account status.
      *
      * @return string The account status.
@@ -3418,24 +3502,6 @@ class GSC_ManagedAccount extends _GSC_AtomElement {
 class GSC_ManagedAccountList extends _GSC_AtomElement {
 
     /**
-     * Get the start index of search results.
-     *
-     * @return string The start index of search results.
-     **/
-    function getStartIndex() {
-        return $this->getFirstValue(_GSC_Tags::$startIndex);
-    }
-
-    /**
-     * Get the total number of search results.
-     *
-     * @return string The total number of search results.
-     **/
-    function getTotalResults() {
-        return $this->getFirstValue(_GSC_Tags::$totalResults);
-    }
-
-    /**
      * Get the list of accounts.
      *
      * @return array List of GSC_ManagedAccount from the feed.
@@ -3463,6 +3529,285 @@ class GSC_ManagedAccountList extends _GSC_AtomElement {
              'xmlns:app="http://www.w3.org/2007/app" '.
              'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
              'xmlns:gd="http://schemas.google.com/g/2005" '.
+             'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+
+/**
+ * GSC_Datafeed
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ * @copyright Google Inc, 2011
+ * @author dhermes@google.com
+ **/
+class GSC_Datafeed extends _GSC_AtomElement {
+
+    /**
+     * Get the target country of the product.
+     *
+     * @return string The target country of the product.
+     **/
+    function getTargetCountry() {
+        return $this->getFirstValue(_GSC_Tags::$target_country);
+    }
+
+    /**
+     * Set the target country of the product.
+     *
+     * @param string $country The target country to set.
+     * @return DOMElement The element that was changed.
+     **/
+    function setTargetCountry($country) {
+        return $this->setFirstValue(_GSC_Tags::$target_country, $country);
+    }
+
+    /**
+     * Get the content language of the product.
+     *
+     * @return string The target country of the product.
+     **/
+    function getContentLanguage() {
+        return $this->getFirstValue(_GSC_Tags::$content_language);
+    }
+
+    /**
+     * Set the content language of the product.
+     *
+     * @param string $language The language to set.
+     * @return DOMElement The element that was changed.
+     **/
+    function setContentLanguage($language) {
+        return $this->setFirstValue(_GSC_Tags::$content_language, $language);
+    }
+
+    /**
+     * Get the feed file name.
+     *
+     * @return string The feed file name.
+     **/
+    function getFeedFileName() {
+        return $this->getFirstValue(_GSC_Tags::$feed_file_name);
+    }
+
+    /**
+     * Set the feed file name.
+     *
+     * @param string $feed_file_name The feed file name.
+     * @return DOMElement The element that was changed.
+     **/
+    function setFeedFileName($feed_file_name) {
+        return $this->setFirstValue(
+            _GSC_Tags::$feed_file_name,
+            $feed_file_name
+        );
+    }
+
+    /**
+     * Get the attribute language.
+     *
+     * @return string The attribute language.
+     **/
+    function getAttributeLanguage() {
+        return $this->getFirstValue(_GSC_Tags::$attribute_language);
+    }
+
+    /**
+     * Set the attribute language.
+     *
+     * @param string $attribute_language The attribute language.
+     * @return DOMElement The element that was changed.
+     **/
+    function setAttributeLanguage($attribute_language) {
+        return $this->setFirstValue(
+            _GSC_Tags::$attribute_language,
+            $attribute_language
+        );
+    }
+
+    /**
+     * Get the file format.
+     *
+     * @return string The file format.
+     **/
+    function getFileFormat() {
+        $el = $this->getFirst(_GSC_Tags::$file_format);
+        return $el->getAttribute('format');
+    }
+
+    /**
+     * Set the file format.
+     *
+     * @param string $format The file format.
+     * @return DOMElement The element that was changed.
+     **/
+    function setFileFormat($format) {
+        $el = $this->getCreateFirst(_GSC_Tags::$file_format);
+        $el->setAttribute('format', $format);
+        return $el;
+    }
+
+    /**
+     * Get the encoding.
+     *
+     * @return string The encoding.
+     **/
+    function getEncoding() {
+        $format = $this->getFirst(_GSC_Tags::$file_format);
+        if ($format == null) {
+            return null;
+        } else {
+            return $this->getFirstValue(_GSC_Tags::$encoding, $format);
+        }
+    }
+
+    /**
+     * Set the encoding.
+     *
+     * @param string $encoding The encoding.
+     * @return DOMElement The element that was changed.
+     **/
+    function setEncoding($encoding) {
+        $format = $this->getCreateFirst(_GSC_Tags::$file_format);
+        return $this->setFirstValue(_GSC_Tags::$encoding, $encoding, $format);
+    }
+
+    /**
+     * Get the delimiter.
+     *
+     * @return string The delimiter.
+     **/
+    function getDelimiter() {
+        $format = $this->getFirst(_GSC_Tags::$file_format);
+        if ($format == null) {
+            return null;
+        } else {
+            return $this->getFirstValue(_GSC_Tags::$delimiter, $format);
+        }
+    }
+
+    /**
+     * Set the delimiter.
+     *
+     * @param string $delimiter The delimiter.
+     * @return DOMElement The element that was changed.
+     **/
+    function setDelimiter($delimiter) {
+        $format = $this->getCreateFirst(_GSC_Tags::$file_format);
+        return $this->setFirstValue(_GSC_Tags::$delimiter, $delimiter, $format);
+    }
+
+    /**
+     * Get the "use quoted fields" value.
+     *
+     * @return string The "use quoted fields" value.
+     **/
+    function getUseQuotedFields() {
+        $format = $this->getFirst(_GSC_Tags::$file_format);
+        if ($format) {
+            return $this->getFirstValue(_GSC_Tags::$use_quoted_fields, $format);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Set the "use quoted fields" value.
+     *
+     * @param string $use_quoted_fields The "use quoted fields" value.
+     * @return DOMElement The element that was changed.
+     **/
+    function setUseQuotedFields($use_quoted_fields) {
+        $format = $this->getCreateFirst(_GSC_Tags::$file_format);
+        return $this->setFirstValue(
+            _GSC_Tags::$use_quoted_fields,
+            $use_quoted_fields,
+            $format
+        );
+    }
+
+    /**
+     * Get the feed type.
+     *
+     * @return string The feed type.
+     **/
+    function getFeedType() {
+        return $this->getFirstValue(_GSC_Tags::$feed_type);
+    }
+
+    /**
+     * Get the processing status.
+     *
+     * @return string The processing status.
+     **/
+    function getProcessingStatus() {
+        $el = $this->getFirst(_GSC_Tags::$processing_status);
+        if ($el) {
+            return $el->getAttribute('status');
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<entry '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_DatafeedList
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ * @copyright Google Inc, 2011
+ * @author dhermes@google.com
+ **/
+class GSC_DatafeedList extends _GSC_AtomElement {
+
+    /**
+     * Get the list of datafeeds.
+     *
+     * @return array List of GSC_Datafeed from the feed.
+     **/
+    public function getDatafeeds() {
+        $list = $this->getAll(_GSC_Tags::$entry);
+        $count = $list->length;
+        $datafeeds = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $datafeed = new GSC_Datafeed($this->doc, $child);
+            array_push($datafeeds, $datafeed);
+        }
+        return $datafeeds;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<feed '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
              'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
              '/>';
         $this->doc->loadXML($s);
