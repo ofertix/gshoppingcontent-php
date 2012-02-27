@@ -406,11 +406,21 @@ class GSC_Client
      * Insert a product.
      *
      * @param GSC_Product $product The product to insert.
+     * @param boolean $warnings A boolean to determine if the warnings should be
+     *                          included. Defaults to false.
+     * @param boolean $dryRun A boolean to determine if the dry-run should be
+     *                        included. Defaults to false.
      * @return _GSC_Response The HTTP response.
      */
-    public function insertProduct($product) {
-        $resp = _GSC_Http::post(
+    public function insertProduct($product, $warnings=false, $dryRun=false) {
+        $feedUri = $this->appendQueryParams(
             $this->getFeedUri(),
+            $warnings,
+            $dryRun
+        );
+
+        $resp = _GSC_Http::post(
+            $feedUri,
             $product->toXML(),
             $this->getTokenHeader()
           );
@@ -422,11 +432,21 @@ class GSC_Client
      *
      * @param GSC_Product $product The product to update.
      *                    Must have rel='edit' set.
+     * @param boolean $warnings A boolean to determine if the warnings should be
+     *                          included. Defaults to false.
+     * @param boolean $dryRun A boolean to determine if the dry-run should be
+     *                        included. Defaults to false.
      * @return _GSC_Response The HTTP response.
      */
-    public function updateProduct($product) {
-        $resp = _GSC_Http::put(
+    public function updateProduct($product, $warnings=false, $dryRun=false) {
+        $productUri = $this->appendQueryParams(
             $product->getEditLink(),
+            $warnings,
+            $dryRun
+        );
+
+        $resp = _GSC_Http::put(
+            $productUri,
             $product->toXML(),
             $this->getTokenHeader()
           );
@@ -455,21 +475,41 @@ class GSC_Client
      *
      * @param GSC_Product $product The product to delete.
      *                    Must have rel='edit' set.
+     * @param boolean $warnings A boolean to determine if the warnings should be
+     *                          included. Defaults to false.
+     * @param boolean $dryRun A boolean to determine if the dry-run should be
+     *                        included. Defaults to false.
      * @return _GSC_Response The HTTP response.
      */
-    public function deleteProduct($product) {
-        $this->deleteFromLink($product->getEditLink());
+    public function deleteProduct($product, $warnings=false, $dryRun=false) {
+        $productUri = $this->appendQueryParams(
+            $product->getEditLink(),
+            $warnings,
+            $dryRun
+        );
+
+        $this->deleteFromLink($productUri);
     }
 
     /**
      * Make a batch request.
      *
      * @param GSC_ProductList $products The list of products to batch.
+     * @param boolean $warnings A boolean to determine if the warnings should be
+     *                          included. Defaults to false.
+     * @param boolean $dryRun A boolean to determine if the dry-run should be
+     *                        included. Defaults to false.
      * @return GSC_ProductList The returned results from the batch.
      **/
-    public function batch($products) {
-        $resp = _GSC_Http::post(
+    public function batch($products, $warnings=false, $dryRun=false) {
+        $batchUri = $this->appendQueryParams(
             $this->getBatchUri(),
+            $warnings,
+            $dryRun
+        );
+
+        $resp = _GSC_Http::post(
+            $batchUri(),
             $products->toXML(),
             $this->getTokenHeader()
           );
@@ -535,15 +575,6 @@ class GSC_Client
     }
 
     /**
-     * Create a URI for the feed for this merchant.
-     *
-     * @return string The feed URI.
-     **/
-    public function getFeedUri() {
-        return BASE . $this->merchantId . '/items/products/schema/';
-    }
-
-    /**
      * Update a subaccount.
      *
      * @param GSC_ManagedAccount $account The account to update.
@@ -568,6 +599,15 @@ class GSC_Client
      */
     public function deleteAccount($account) {
         $this->deleteFromLink($account->getEditLink());
+    }
+
+    /**
+     * Create a URI for the feed for this merchant.
+     *
+     * @return string The feed URI.
+     **/
+    public function getFeedUri() {
+        return BASE . $this->merchantId . '/items/products/schema/';
     }
 
     /**
@@ -609,6 +649,32 @@ class GSC_Client
             $result .= '/' . $accountId;
         }
         return $result;
+    }
+
+    /**
+     * Build a URI with warnings and dry-run query parameters.
+     *
+     * @param string $uri The URI to have parameters appended to.
+     * @param boolean $warnings A boolean to determine if the warnings should be
+     *                          included. Defaults to false.
+     * @param boolean $dryRun A boolean to determine if the dry-run should be
+     *                        included. Defaults to false.
+     * @return string The URI with parameters included
+     **/
+    public function appendQueryParams($uri, $warnings=false, $dryRun=false) {
+        $queryParams = array();
+        if ($warnings) {
+            array_push($queryParams, 'warnings');
+        }
+        if ($dryRun) {
+            array_push($queryParams, 'dry-run');
+        }
+
+        if (count($queryParams) > 0) {
+            $uri .= '?' . join('&', $queryParams);
+        }
+
+        return $uri;
     }
 
     /**
@@ -755,6 +821,30 @@ class _GSC_Tags {
     public static $updated = array(_GSC_Ns::atom, 'updated');
 
     /**
+     * <atom:author> element
+     *
+     * @var array
+     * @see _GSC_AtomElement::getAtomAuthor()
+     **/
+    public static $atomAuthor = array(_GSC_Ns::atom, 'author');
+
+    /**
+     * <atom:name> element
+     *
+     * @var array
+     * @see _GSC_AtomElement::getAuthorName()
+     **/
+    public static $name = array(_GSC_Ns::atom, 'name');
+
+    /**
+     * <atom:email> element
+     *
+     * @var array
+     * @see _GSC_AtomElement::getAuthorEmail()
+     **/
+    public static $email = array(_GSC_Ns::atom, 'email');
+
+    /**
      * <gd:errors> element
      *
      * @var array
@@ -816,6 +906,13 @@ class _GSC_Tags {
      * @var array
      **/
     public static $etag = array(_GSC_Ns::gd, 'etag');
+
+    /**
+     * <gd:kind> element
+     *
+     * @var array
+     **/
+    public static $kind = array(_GSC_Ns::gd, 'kind');
 
     /**
      * <openSearch:startIndex> element
@@ -898,6 +995,62 @@ class _GSC_Tags {
      *      GSC_Product::getGroups()
      **/
     public static $group = array(_GSC_Ns::sc, 'group');
+
+    /**
+     * <sc:warnings> element
+     *
+     * @var array
+     * @see GSC_Product::getWarnings()
+     **/
+    public static $warnings = array(_GSC_Ns::sc, 'warnings');
+
+    /**
+     * <sc:warning> element
+     *
+     * @var array
+     * @see GSC_Product::getWarnings()
+     **/
+    public static $warning = array(_GSC_Ns::sc, 'warning');
+
+    /**
+     * <sc:code> element
+     *
+     * @var array
+     * @see GSC_Product::getWarningCode()
+     **/
+    public static $warningCode = array(_GSC_Ns::sc, 'code');
+
+    /**
+     * <sc:domain> element
+     *
+     * @var array
+     * @see GSC_Product::getWarningDomain()
+     **/
+    public static $warningDomain = array(_GSC_Ns::sc, 'domain');
+
+    /**
+     * <sc:location> element
+     *
+     * @var array
+     * @see GSC_Product::getWarningLocation()
+     **/
+    public static $warningLocation = array(_GSC_Ns::sc, 'location');
+
+    /**
+     * <sc:message> element
+     *
+     * @var array
+     * @see GSC_Product::getWarningMessage()
+     **/
+    public static $message = array(_GSC_Ns::sc, 'message');
+
+    /**
+     * <sc:disapproved> element
+     *
+     * @var array
+     * @see GSC_Product::getDisapproved()
+     **/
+    public static $disapproved = array(_GSC_Ns::sc, 'disapproved');
 
     /**
      * <sc:adult> element
@@ -1616,6 +1769,34 @@ abstract class _GSC_AtomElement
     }
 
     /**
+     * Get the atom author.
+     *
+     * @return string The atom author.
+     **/
+    function getAtomAuthor() {
+        return $this->getFirst(_GSC_Tags::$atomAuthor);
+    }
+
+    /**
+     * Get the author name.
+     *
+     * @return string The author name.
+     **/
+    function getAuthorName() {
+        $author = $this->getAtomAuthor();
+        return $this->getFirstValue(_GSC_Tags::$name, $author);
+    }
+
+    /**
+     * Get the author email.
+     *
+     * @return string The author email.
+     **/
+    function getAuthorEmail() {
+        $author = $this->getAtomAuthor();
+        return $this->getFirstValue(_GSC_Tags::$email, $author);
+    }
+    /**
      * Get the title.
      *
      * @return string The title.
@@ -1867,6 +2048,57 @@ class GSC_Product extends _GSC_AtomElement {
         foreach ($attributes as $attribute) {
             $group->appendChild($attribute);
         }
+    }
+
+    /**
+     * Get the warnings.
+     *
+     * @return DOMNodeList The list of warnings as DOM Elements.
+     **/
+    public function getWarnings() {
+        $appControl = $this->getFirst(_GSC_Tags::$control);
+        $warnings = $this->getFirst(_GSC_Tags::$warnings, $appControl);
+        return $this->getAll(_GSC_Tags::$warning, $warnings);
+    }
+
+    /**
+     * Get the warning code.
+     *
+     * @param DOMElement $warning The DOM Element containing the warning.
+     * @return string The warning code.
+     **/
+    public function getWarningCode($warning) {
+        return $this->getFirstValue(_GSC_Tags::$warningCode, $warning);
+    }
+
+    /**
+     * Get the warning domain.
+     *
+     * @param DOMElement $warning The DOM Element containing the warning.
+     * @return string The warning domain.
+     **/
+    public function getWarningDomain($warning) {
+        return $this->getFirstValue(_GSC_Tags::$warningDomain, $warning);
+    }
+
+    /**
+     * Get the warning location.
+     *
+     * @param DOMElement $warning The DOM Element containing the warning.
+     * @return string The warning location.
+     **/
+    public function getWarningLocation($warning) {
+        return $this->getFirstValue(_GSC_Tags::$warningLocation, $warning);
+    }
+
+    /**
+     * Get the warning message.
+     *
+     * @param DOMElement $warning The DOM Element containing the warning.
+     * @return string The warning message.
+     **/
+    public function getWarningMessage($warning) {
+        return $this->getFirstValue(_GSC_Tags::$message, $warning);
     }
 
     /**
@@ -2671,6 +2903,15 @@ class GSC_Product extends _GSC_AtomElement {
      **/
     function clearAllTaxes() {
         $this->deleteAll(_GSC_Tags::$tax);
+    }
+
+    /**
+     * Get the disapproved status of the item.
+     *
+     * @return DOMElement The disapproved status of the item.
+     **/
+    function getDisapproved() {
+        return $this->getFirstValue(_GSC_Tags::$disapproved);
     }
 
     /**
