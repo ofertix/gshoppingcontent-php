@@ -602,6 +602,75 @@ class GSC_Client
     }
 
     /**
+     * Get all datafeeds.
+     *
+     * @return _GSC_Response The HTTP response.
+     */
+    public function getDatafeeds() {
+        $resp = _GSC_Http::get(
+            $this->getDatafeedsUri();
+            $this->getTokenHeader()
+        );
+        return _GSC_AtomParser::parseDatafeeds($resp->body);
+    }
+
+    /**
+     * Get a datafeed.
+     *
+     * @param string $accountId The account id.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function getDatafeed($accountId) {
+        $resp = _GSC_Http::get(
+            $this->getDatafeedsUri($accountId),
+            $this->getTokenHeader()
+          );
+        return _GSC_AtomParser::parseDatafeeds($resp->body);
+    }
+
+    /**
+     * Insert a datafeed.
+     *
+     * @param GSC_Datafeed $datafeed The datafeed to insert.
+     * @return GSC_Datafeed The inserted datafeed from the response.
+     */
+    public function insertDatafeed($datafeed) {
+        $resp = _GSC_Http::post(
+            $this->getDatafeedsUri(),
+            $datafeed->toXML(),
+            $this->getTokenHeader()
+          );
+        return _GSC_AtomParser::parseDatafeeds($resp->body);
+    }
+
+    /**
+     * Update a datafeed.
+     *
+     * @param GSC_Datafeed $datafeed The datafeed to update.
+     *                               Must have rel='edit' set.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function updateDatafeed($datafeed) {
+        $resp = _GSC_Http::put(
+            $datafeed->getEditLink(),
+            $datafeed->toXML(),
+            $this->getTokenHeader()
+          );
+        return _GSC_AtomParser::parseDatafeeds($resp->body);
+    }
+
+    /**
+     * Delete a datafeed.
+     *
+     * @param GSC_Datafeed $datafeed The datafeed to delete.
+     *                               Must have rel='edit' set.
+     * @return _GSC_Response The HTTP response.
+     */
+    public function deleteDatafeed($datafeed) {
+        $this->deleteFromLink($datafeed->getEditLink());
+    }
+
+    /**
      * Create a URI for the feed for this merchant.
      *
      * @return string The feed URI.
@@ -645,6 +714,20 @@ class GSC_Client
      **/
     public function getManagedAccountsUri($accountId=null) {
         $result = BASE . $this->merchantId . '/managedaccounts';
+        if ($accountId != null) {
+            $result .= '/' . $accountId;
+        }
+        return $result;
+    }
+
+    /**
+     * Create a URI for the datafeeds feed for this merchant.
+     *
+     * @param string $accountId The account id. Defaults to null.
+     * @return string The datafeeds URI.
+     **/
+    public function getDatafeedsUri($accountId=null) {
+        $result = BASE . $this->merchantId . '/datafeeds/products';
         if ($accountId != null) {
             $result .= '/' . $accountId;
         }
@@ -1604,6 +1687,26 @@ class _GSC_AtomParser {
         }
         else if ($root->tagName == 'feed') {
             return new GSC_ManagedAccountList($doc, $root);
+        }
+        else if ($root->tagName == 'errors') {
+            return new GSC_Errors($doc, $root);
+        }
+    }
+
+    /**
+     * Parse some XML into our data model for the datafeeds feed.
+     *
+     * @param string $xml The XML to parse.
+     * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     **/
+    public static function parseDatafeeds($xml) {
+        $doc = _GSC_AtomParser::_xmlToDOM($xml);
+        $root = $doc->documentElement;
+        if ($root->tagName == 'entry') {
+            return new GSC_Datafeed($doc, $root);
+        }
+        else if ($root->tagName == 'feed') {
+            return new GSC_DatafeedList($doc, $root);
         }
         else if ($root->tagName == 'errors') {
             return new GSC_Errors($doc, $root);
