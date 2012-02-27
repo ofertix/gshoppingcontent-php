@@ -3060,6 +3060,42 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
+     * Get the content tag containing batch errors.
+     *
+     * @return DOMElement The content tag containing batch errors. If
+     *                    no matching tag is found, returns null.
+     **/
+    function _getContentErrorTag() {
+        $errorType = 'application/vnd.google.gdata.error+xml';
+
+        $list = $this->getAll(_GSC_Tags::$content);
+        $count = $list->length;
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            if ($child->getAttribute('type') == $errorType) {
+                return $child;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the errors element from a batch entry.
+     *
+     * @return GSC_Errors The errors element from a batch entry. If
+     *                    no matching tag is found, returns null.
+     **/
+    function getErrorsFromBatch() {
+        $content = $this->_getContentErrorTag();
+        if ($content == null) {
+            return null;
+        }
+
+        $errors = $this->getFirst(_GSC_Tags::$errors, $content);
+        return new GSC_Errors($this->doc, $errors);
+    }
+
+    /**
      * Create the initial model when none is provided.
      *
      * @return void
