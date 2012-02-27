@@ -783,7 +783,7 @@ class _GSC_Tags {
      * The <atom:id> tag.
      *
      * @var array
-     * @see _GSC_AtomElement::getAtomId()
+     * @see _GSC_AtomElement::getAtomId(), _GSC_AtomElement::setAtomId()
      **/
     public static $atomId = array(_GSC_Ns::atom, 'id');
 
@@ -915,6 +915,13 @@ class _GSC_Tags {
     public static $kind = array(_GSC_Ns::gd, 'kind');
 
     /**
+     * <gd:fields> element
+     *
+     * @var array
+     **/
+    public static $fields = array(_GSC_Ns::gd, 'fields');
+
+    /**
      * <openSearch:startIndex> element
      *
      * @var array
@@ -969,6 +976,14 @@ class _GSC_Tags {
      * @see GSC_Product::addExcludedDestination(), GSC_Product::clearAllDestinations()
      **/
     public static $excluded_destination = array(_GSC_Ns::sc, 'excluded_destination');
+
+    /**
+     * <sc:status> element
+     *
+     * @var array
+     * @see GSC_Product::getDestinationStatus()
+     **/
+    public static $destinationStatus = array(_GSC_Ns::sc, 'status');
 
     /**
      * <sc:id> element
@@ -1748,6 +1763,16 @@ abstract class _GSC_AtomElement
      **/
     function getAtomId() {
         return $this->getFirstValue(_GSC_Tags::$atomId);
+    }
+
+    /**
+     * Set the atom ID.
+     *
+     * @param string $atomId The atom ID to set.
+     * @return DOMElement The element that was changed.
+     **/
+    function setAtomId($atomId) {
+        return $this->setFirstValue(_GSC_Tags::$atomId, $atomId);
     }
 
     /**
@@ -2965,6 +2990,26 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
+     * Get the status of insertion into a destination.
+     *
+     * @param string $destination The destination to be checked.
+     * @return string The status of insertion into a destination.
+     **/
+    function getDestinationStatus($destination) {
+        $control = $this->getFirst(_GSC_Tags::$control);
+
+        $statuses = $this->getAll(_GSC_Tags::$destinationStatus, $control);
+        $count = $statuses->length;
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $statuses->item($pos);
+            if ($child->getAttribute('dest') == $destination) {
+                return $child->getAttribute('status');
+            }
+        }
+        return '';
+    }
+
+    /**
      * Add an additional image link to the product.
      *
      * @param string $link The link to add.
@@ -3195,6 +3240,16 @@ class GSC_ProductList extends _GSC_AtomElement {
                 'start-token'
             );
         }
+    }
+
+    /**
+     * Get the request size.
+     *
+     * @return integer The request size in KB.
+     **/
+    public function getRequestSize() {
+        $length = strlen($this->toXML());
+        return (integer) ceil($length/1024);
     }
 
     /**
