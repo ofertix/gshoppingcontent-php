@@ -61,7 +61,7 @@ const BASE = 'https://content.googleapis.com/content/v1/';
  * @version 1.1
  * @author afshar@google.com, dhermes@google.com
  **/
-class  _GSC_Response
+class _GSC_Response
 {
 
     /**
@@ -351,7 +351,7 @@ class GSC_Client
      *
      * @param string $maxResults The max results desired. Defaults to null.
      * @param string $startToken The start token for the query. Defaults to null.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_ProductList or GSC_Errors parsed from the response.
      */
     public function getProducts($maxResults=null, $startToken=null) {
         $feedUri = $this->getFeedUri();
@@ -379,7 +379,7 @@ class GSC_Client
      * Get a product from a link.
      *
      * @param string $link The edit link for the product.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_Product or GSC_Errors parsed from the response.
      */
     public function getFromLink($link) {
         $resp = _GSC_Http::get(
@@ -395,7 +395,7 @@ class GSC_Client
      * @param string $id The product id.
      * @param string $country The country specific to the product.
      * @param string $language The language specific to the product.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_Product or GSC_Errors parsed from the response.
      */
     public function getProduct($id, $country, $language) {
         $link = $this->getProductUri($id, $country, $language);
@@ -410,7 +410,7 @@ class GSC_Client
      *                          included. Defaults to false.
      * @param boolean $dryRun A boolean to determine if the dry-run should be
      *                        included. Defaults to false.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_Product or GSC_Errors parsed from the response.
      */
     public function insertProduct($product, $warnings=false, $dryRun=false) {
         $feedUri = $this->appendQueryParams(
@@ -436,7 +436,7 @@ class GSC_Client
      *                          included. Defaults to false.
      * @param boolean $dryRun A boolean to determine if the dry-run should be
      *                        included. Defaults to false.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_Product or GSC_Errors parsed from the response.
      */
     public function updateProduct($product, $warnings=false, $dryRun=false) {
         $productUri = $this->appendQueryParams(
@@ -457,7 +457,8 @@ class GSC_Client
      * Send a delete request to a link.
      *
      * @param string $link The edit link for the product.
-     * @return _GSC_Response The HTTP response.
+     * @throws _GSC_ClientError if the response code is not 200.
+     * @return void
      */
     public function deleteFromLink($link) {
         $resp = _GSC_Http::delete(
@@ -479,7 +480,8 @@ class GSC_Client
      *                          included. Defaults to false.
      * @param boolean $dryRun A boolean to determine if the dry-run should be
      *                        included. Defaults to false.
-     * @return _GSC_Response The HTTP response.
+     * @throws _GSC_ClientError if the response code is not 200.
+     * @return void
      */
     public function deleteProduct($product, $warnings=false, $dryRun=false) {
         $productUri = $this->appendQueryParams(
@@ -521,7 +523,7 @@ class GSC_Client
      *
      * @param string $maxResults The max results desired. Defaults to null.
      * @param string $startIndex The start index for the query. Defaults to null.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_ManagedAccountList or GSC_Errors parsed from the response.
      */
     public function getAccounts($maxResults=null, $startIndex=null) {
         $accountsUri = $this->getManagedAccountsUri();
@@ -549,7 +551,7 @@ class GSC_Client
      * Get a subaccount.
      *
      * @param string $accountId The account id.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_ManagedAccount or GSC_Errors parsed from the response.
      */
     public function getAccount($accountId) {
         $resp = _GSC_Http::get(
@@ -579,7 +581,7 @@ class GSC_Client
      *
      * @param GSC_ManagedAccount $account The account to update.
      *                                    Must have rel='edit' set.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_ManagedAccount or GSC_Errors parsed from the response.
      */
     public function updateAccount($account) {
         $resp = _GSC_Http::put(
@@ -595,7 +597,8 @@ class GSC_Client
      *
      * @param GSC_ManagedAccount $account The account to delete.
      *                                    Must have rel='edit' set.
-     * @return _GSC_Response The HTTP response.
+     * @throws _GSC_ClientError if the response code is not 200.
+     * @return void
      */
     public function deleteAccount($account) {
         $this->deleteFromLink($account->getEditLink());
@@ -604,7 +607,7 @@ class GSC_Client
     /**
      * Get all datafeeds.
      *
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_DatafeedList or GSC_Errors parsed from the response.
      */
     public function getDatafeeds() {
         $resp = _GSC_Http::get(
@@ -618,7 +621,7 @@ class GSC_Client
      * Get a datafeed.
      *
      * @param string $accountId The account id.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_Datafeed or GSC_Errors parsed from the response.
      */
     public function getDatafeed($accountId) {
         $resp = _GSC_Http::get(
@@ -648,7 +651,7 @@ class GSC_Client
      *
      * @param GSC_Datafeed $datafeed The datafeed to update.
      *                               Must have rel='edit' set.
-     * @return _GSC_Response The HTTP response.
+     * @return GSC_Datafeed or GSC_Errors parsed from the response.
      */
     public function updateDatafeed($datafeed) {
         $resp = _GSC_Http::put(
@@ -664,7 +667,8 @@ class GSC_Client
      *
      * @param GSC_Datafeed $datafeed The datafeed to delete.
      *                               Must have rel='edit' set.
-     * @return _GSC_Response The HTTP response.
+     * @throws _GSC_ClientError if the response code is not 200.
+     * @return void
      */
     public function deleteDatafeed($datafeed) {
         $this->deleteFromLink($datafeed->getEditLink());
