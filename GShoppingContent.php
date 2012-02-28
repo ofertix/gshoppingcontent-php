@@ -3139,20 +3139,34 @@ class GSC_Product extends _GSC_AtomElement {
     /**
      * Add a shipping rule to the product.
      *
-     * @param string $country The shipping country to set.
-     * @param string $region The shipping region to set.
-     * @param string $price The shipping price to set.
-     * @param string $priceUnit The shipping price currency to set.
-     * @param string $service The shipping service to set.
+     * @param string $country The shipping country to set. Defaults to null.
+     * @param string $region The shipping region to set. Defaults to null.
+     * @param string $price The shipping price to set. Defaults to null.
+     * @param string $priceUnit The shipping price currency to set. Defaults
+     *                          to null.
+     * @param string $service The shipping service to set. Defaults to null.
      * @return DOMElement The element that was created.
      **/
-    function addShipping($country, $region, $price, $priceUnit, $service) {
+    function addShipping($country=null, $region=null, $price=null, $priceUnit=null, $service=null) {
         $el = $this->create(_GSC_Tags::$shipping);
-        $this->setFirstValue(_GSC_Tags::$shipping_country, $country, $el);
-        $this->setFirstValue(_GSC_Tags::$shipping_region, $region, $el);
-        $priceEl = $this->setFirstValue(_GSC_Tags::$shipping_price, $price, $el);
-        $priceEl->setAttribute('unit', $priceUnit);
-        $this->setFirstValue(_GSC_Tags::$shipping_service, $service, $el);
+
+        if ($country != null) {
+            $this->setFirstValue(_GSC_Tags::$shipping_country, $country, $el);
+        }
+
+        if ($region != null) {
+            $this->setFirstValue(_GSC_Tags::$shipping_region, $region, $el);
+        }
+
+        if ($price != null && $priceUnit != null) {
+            $priceEl = $this->setFirstValue(_GSC_Tags::$shipping_price, $price, $el);
+            $priceEl->setAttribute('unit', $priceUnit);
+        }
+
+        if ($service != null) {
+            $this->setFirstValue(_GSC_Tags::$shipping_service, $service, $el);
+        }
+
         $this->model->appendChild($el);
         return $el;
     }
@@ -3169,18 +3183,31 @@ class GSC_Product extends _GSC_AtomElement {
     /**
      * Add a tax rule to the product.
      *
-     * @param string $country The tax country to set.
-     * @param string $region The tax region to set.
-     * @param string $rate The tax rate to set.
-     * @param string $ship The tax on shipping to set.
+     * @param string $country The tax country to set. Defaults to null.
+     * @param string $region The tax region to set. Defaults to null.
+     * @param string $rate The tax rate to set. Defaults to null.
+     * @param string $ship The tax on shipping to set. Defaults to null.
      * @return DOMElement The element that was created.
      **/
-    function addTax($country, $region, $rate, $ship) {
+    function addTax($country=null, $region=null, $rate=null, $ship=null) {
         $el = $this->create(_GSC_Tags::$tax);
-        $this->setFirstValue(_GSC_Tags::$tax_country, $country, $el);
-        $this->setFirstValue(_GSC_Tags::$tax_region, $region, $el);
-        $this->setFirstValue(_GSC_Tags::$tax_rate, $rate, $el);
-        $this->setFirstValue(_GSC_Tags::$tax_ship, $ship, $el);
+
+        if ($country != null) {
+            $this->setFirstValue(_GSC_Tags::$tax_country, $country, $el);
+        }
+
+        if ($region != null) {
+            $this->setFirstValue(_GSC_Tags::$tax_region, $region, $el);
+        }
+
+        if ($rate != null) {
+            $this->setFirstValue(_GSC_Tags::$tax_rate, $rate, $el);
+        }
+
+        if ($ship != null) {
+            $this->setFirstValue(_GSC_Tags::$tax_ship, $ship, $el);
+        }
+
         $this->model->appendChild($el);
         return $el;
     }
