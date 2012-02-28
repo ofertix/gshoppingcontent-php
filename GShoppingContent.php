@@ -1558,6 +1558,15 @@ class _GSC_Tags {
     public static $product_review_average = array(_GSC_Ns::scp, 'product_review_average');
 
     /**
+     * <scp:product_review_count> element
+     *
+     * @var array
+     * @see GSC_Product::setProductReviewCount(),
+     *      GSC_Product::getProductReviewCount()
+     **/
+    public static $product_review_count = array(_GSC_Ns::scp, 'product_review_count');
+
+    /**
      * <scp:quantity> element
      *
      * @var array
