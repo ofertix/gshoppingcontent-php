@@ -34,6 +34,17 @@ class GSC_TestClient extends PHPUnit_Framework_TestCase {
         $link = $client->getProductUri('SKU123', 'US', 'en');
         $this->assertEquals($expected, $link);
     }
+
+    public function testSubaccountDoesntExist() {
+        $creds = Credentials::get();
+        $client = new GSC_Client($creds["merchantId"]);
+        $client->login($creds["email"], $creds["password"]);
+
+        $errors = $client->getAccount("1");
+        $errors = $errors->getErrors();
+        $error = $errors[0];
+        $this->assertEquals('ResourceNotFoundException', $error->getCode());
+    }
 }
 
 /**
