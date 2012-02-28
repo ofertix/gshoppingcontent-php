@@ -3305,6 +3305,16 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
+     * Get the batch status reason.
+     *
+     * @return string The status reason for this batch operation
+     **/
+    function getBatchStatusReason() {
+        $el = $this->getFirst(_GSC_Tags::$status);
+        return $el->getAttribute('reason');
+    }
+
+    /**
      * Get the content tag containing batch errors.
      *
      * @return DOMElement The content tag containing batch errors. If
