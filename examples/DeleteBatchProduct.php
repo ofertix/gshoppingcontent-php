@@ -24,6 +24,7 @@
 
 // import our library
 require_once('GShoppingContent.php');
+require_once('BuildMockProduct.php');
 
 // Get the user credentials
 $creds = Credentials::get();
@@ -32,23 +33,11 @@ $creds = Credentials::get();
 $client = new GSC_Client($creds["merchantId"]);
 $client->login($creds["email"], $creds["password"]);
 
-// Iinsert a product so we can delete it
+// Insert a product so we can delete it
 $id = "SKU124";
 $country = "US";
 $language = "en";
-$product = new GSC_Product();
-$product->setSKU($id);
-$product->setTargetCountry($country);
-$product->setContentLanguage($language);
-
-$product->setCondition("new");
-$product->setTitle("Noname XX500-21P Ethernet Switch - 21 Port - 10/100/1000 Base-T");
-$product->setProductLink("http://www.example.com/sku124");
-$product->setPrice("11", "usd");
-$product->setDescription("21 Port - 10/100/1000 Base-T, very fast.");
-$product->setGoogleProductCategory("Electronics &gt; Networking &gt; Hubs &amp; Switches");
-$product->setAvailability("in stock");
-$product->addTax("US", "CA", "4.25", "true");
+$product = buildMockProduct($id, $country, $language);
 
 $product = $client->insertProduct($product);
 echo('Inserted: ' . $product->getTitle() . "\n");
@@ -85,6 +74,5 @@ class Credentials {
         );
     }
 }
-
 
 ?>

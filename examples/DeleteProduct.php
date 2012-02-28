@@ -17,13 +17,14 @@
  *   under the License.
  *
  * @version 1.1
- * @author afshar@google.com, dhermes@google.com
+ * @author dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
  */
 
 // import our library
 require_once('GShoppingContent.php');
+require_once('BuildMockProduct.php');
 
 // Get the user credentials
 $creds = Credentials::get();
@@ -33,17 +34,22 @@ $client = new GSC_Client($creds["merchantId"]);
 $client->login($creds["email"], $creds["password"]);
 
 // Now enter some product data
-$product = new GSC_Product();
-$product->setSKU("dd192");
-$product->setProductLink("http://code.google.com/");
-$product->setTitle("Dijji Digital Camera");
-$product->setPrice("199.99", "usd");
-$product->setAdult("false");
-$product->setCondition("new");
+$id = "SKU124";
+$country = "US";
+$language = "en";
+$product = buildMockProduct($id, $country, $language);
 
 // Finally send the data to the API
 $entry = $client->insertProduct($product);
-echo('Inserted: ' . $entry->getTitle() . "\n");
+echo 'Inserted: ' . $entry->getTitle() . "\n";
+
+// Delete the product
+$client->deleteProduct($entry);
+echo "Delete succeeded\n";
+
+// Verify the product is deleted
+$errors = $client->getProduct($id, $country, $language);
+echo 'Response Tag after Delete: ' . $errors->model->tagName . "\n";
 
 /**
  * Credentials - Enter your own values

@@ -17,7 +17,7 @@
  *   under the License.
  *
  * @version 1.1
- * @author afshar@google.com, dhermes@google.com
+ * @author dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
  */
@@ -32,18 +32,23 @@ $creds = Credentials::get();
 $client = new GSC_Client($creds["merchantId"]);
 $client->login($creds["email"], $creds["password"]);
 
-// Now enter some product data
-$product = new GSC_Product();
-$product->setSKU("dd192");
-$product->setProductLink("http://code.google.com/");
-$product->setTitle("Dijji Digital Camera");
-$product->setPrice("199.99", "usd");
-$product->setAdult("false");
-$product->setCondition("new");
+// Get all products
+$allProducts = $client->getProducts();
+echo 'Total Number of Products: ' . count($allProducts->getProducts()) . "\n";
 
-// Finally send the data to the API
-$entry = $client->insertProduct($product);
-echo('Inserted: ' . $entry->getTitle() . "\n");
+// Get list containing first product
+$maxResults = "1";
+$feed = $client->getProducts($maxResults);
+$products = $feed->getProducts();
+$product = $products[0];
+echo 'First Product: ' . $product->getTitle() . "\n";
+
+// Get list containing second product (and so on, paging through results)
+$nextStartToken = $feed->getStartToken();
+$nextFeed = $client->getProducts($maxResults, $nextStartToken);
+$products = $nextFeed->getProducts();
+$product = $products[0];
+echo 'Second Product: ' . $product->getTitle() . "\n";
 
 /**
  * Credentials - Enter your own values

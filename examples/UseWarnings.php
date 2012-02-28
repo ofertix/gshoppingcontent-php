@@ -17,13 +17,14 @@
  *   under the License.
  *
  * @version 1.1
- * @author afshar@google.com, dhermes@google.com
+ * @author dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
  */
 
 // import our library
 require_once('GShoppingContent.php');
+require_once('BuildMockProduct.php');
 
 // Get the user credentials
 $creds = Credentials::get();
@@ -33,17 +34,24 @@ $client = new GSC_Client($creds["merchantId"]);
 $client->login($creds["email"], $creds["password"]);
 
 // Now enter some product data
-$product = new GSC_Product();
-$product->setSKU("dd192");
-$product->setProductLink("http://code.google.com/");
-$product->setTitle("Dijji Digital Camera");
-$product->setPrice("199.99", "usd");
-$product->setAdult("false");
-$product->setCondition("new");
+$product = buildMockProduct("SKU124", "US", "en");
 
 // Finally send the data to the API
-$entry = $client->insertProduct($product);
-echo('Inserted: ' . $entry->getTitle() . "\n");
+$warnings = true;
+$dryRun = false;
+$entry = $client->insertProduct($product, $warnings, $dryRun);
+echo 'Inserted: ' . $entry->getTitle() . "\n\n";
+
+$warnings = $entry->getWarnings(); // A DOMNodeList
+$count = $warnings->length;
+for($pos=0; $pos<$count; $pos++) {
+    $warning = $warnings->item($pos);
+    echo 'Warning ' . ($pos + 1) . "\n";
+    echo 'Code: ' . $entry->getWarningCode($warning) . "\n";
+    echo 'Domain: ' . $entry->getWarningDomain($warning) . "\n";
+    echo 'Location: ' . $entry->getWarningLocation($warning) . "\n";
+    echo 'Message: ' . $entry->getWarningMessage($warning) . "\n\n";
+}
 
 /**
  * Credentials - Enter your own values
@@ -53,9 +61,9 @@ echo('Inserted: ' . $entry->getTitle() . "\n");
 class Credentials {
     public static function get() {
         return array(
-            "merchantId" => "7842698",
-            "email" => "aafshar@gmail.com",
-            "password" => "subhanul",
+            "merchantId" => "7852698",
+            "email" => "jsmith@gmail.com",
+            "password" => "XXXXXX",
         );
     }
 }
