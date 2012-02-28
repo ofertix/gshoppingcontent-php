@@ -17,7 +17,7 @@
  *   under the License.
  *
  * @version 1.1
- * @author afshar@google.com
+ * @author afshar@google.com, dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
  */
@@ -32,24 +32,43 @@ $creds = Credentials::get();
 $client = new GSC_Client($creds["merchantId"]);
 $client->login($creds["email"], $creds["password"]);
 
-// Now enter some product data
+// Iinsert a product so we can delete it
+$id = "SKU124";
+$country = "US";
+$language = "en";
 $product = new GSC_Product();
-$product->setSKU("dd192");
-$product->setProductLink("http://code.google.com/");
-$product->setTitle("Dijji Digital Camera");
-$product->setPrice("199.99", "usd");
-$product->setAdult("false");
+$product->setSKU($id);
+$product->setTargetCountry($country);
+$product->setContentLanguage($language);
+
 $product->setCondition("new");
-$product->setBatchOperation("insert");
+$product->setTitle("Noname XX500-21P Ethernet Switch - 21 Port - 10/100/1000 Base-T");
+$product->setProductLink("http://www.example.com/sku124");
+$product->setPrice("11", "usd");
+$product->setDescription("21 Port - 10/100/1000 Base-T, very fast.");
+$product->setGoogleProductCategory("Electronics &gt; Networking &gt; Hubs &amp; Switches");
+$product->setAvailability("in stock");
+$product->addTax("US", "CA", "4.25", "true");
+
+$product = $client->insertProduct($product);
+echo('Inserted: ' . $product->getTitle() . "\n");
+
+// Create a dummy <atom:entry> element to include as a batch delete
+$dummyDeleteEntry = new GSC_Product();
+$dummyDeleteEntry->setBatchOperation("delete");
+
+// set the atom id element as specified by the batch protocol
+$editLink = $client->getProductUri($id, $country, $language);
+$dummyDeleteEntry->setAtomId($editLink);
 
 $batch = new GSC_ProductList();
-$batch->addProduct($product);
+$batch->addProduct($dummyDeleteEntry);
 
 // Finally send the data to the API
 $feed = $client->batch($batch);
 $products = $feed->getProducts();
 $operation = $products[0];
-echo('Inserted: ' . $operation->getTitle() . "\n");
+echo('Deleted: ' . $operation->getTitle() . "\n");
 echo('Status: ' . $operation->getBatchStatus() . "\n");
 
 /**

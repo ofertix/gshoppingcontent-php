@@ -16,8 +16,8 @@
  *   License for the specific language governing permissions and limitations
  *   under the License.
  *
- * @version 1
- * @author afshar@google.com
+ * @version 1.1
+ * @author afshar@google.com, dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
  */
@@ -42,7 +42,7 @@ $product->setAdult("false");
 $product->setCondition("new");
 
 // Finally send the data to the API
-$entry = $client->insert($product);
+$entry = $client->insertProduct($product);
 echo('Inserted: ' . $entry->getTitle() . "\n");
 
 /**

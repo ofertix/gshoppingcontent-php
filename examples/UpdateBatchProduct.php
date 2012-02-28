@@ -17,7 +17,7 @@
  *   under the License.
  *
  * @version 1.1
- * @author afshar@google.com
+ * @author dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
  */
@@ -32,16 +32,27 @@ $creds = Credentials::get();
 $client = new GSC_Client($creds["merchantId"]);
 $client->login($creds["email"], $creds["password"]);
 
-// Now enter some product data
+// Insert a product so we can update it in a batch request
 $product = new GSC_Product();
-$product->setSKU("dd192");
-$product->setProductLink("http://code.google.com/");
-$product->setTitle("Dijji Digital Camera");
-$product->setPrice("199.99", "usd");
-$product->setAdult("false");
+$product->setSKU("SKU123");
 $product->setCondition("new");
-$product->setBatchOperation("insert");
+$product->setTitle("Noname XX500-42P Ethernet Switch - 42 Port - 10/100/1000 Base-T");
+$product->setProductLink("http://www.example.com/sku123");
+$product->setPrice("25", "usd");
+$product->setDescription("42 Port - 10/100/1000 Base-T, very fast.");
+$product->setContentLanguage("en");
+$product->setTargetCountry("US");
+$product->setGoogleProductCategory("Electronics &gt; Networking &gt; Hubs &amp; Switches");
+$product->setAvailability("in stock");
+$product->addShipping("US", "MA", "5.95", "USD", "Speedy Shipping - Ground");
+$product->addTax("US", "CA", "8.25", "true");
 
+$product = $client->insertProduct($product);
+echo('Inserted: ' . $product->getTitle() . "\n");
+
+// Update the price and add updated product to batch
+$product->setPrice("20", "usd");
+$product->setBatchOperation("update");
 $batch = new GSC_ProductList();
 $batch->addProduct($product);
 
@@ -49,7 +60,7 @@ $batch->addProduct($product);
 $feed = $client->batch($batch);
 $products = $feed->getProducts();
 $operation = $products[0];
-echo('Inserted: ' . $operation->getTitle() . "\n");
+echo('Updated: ' . $operation->getTitle() . "\n");
 echo('Status: ' . $operation->getBatchStatus() . "\n");
 
 /**

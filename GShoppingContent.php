@@ -511,10 +511,10 @@ class GSC_Client
         );
 
         $resp = _GSC_Http::post(
-            $batchUri(),
+            $batchUri,
             $products->toXML(),
             $this->getTokenHeader()
-          );
+        );
         return _GSC_AtomParser::parse($resp->body);
     }
 
@@ -611,7 +611,7 @@ class GSC_Client
      */
     public function getDatafeeds() {
         $resp = _GSC_Http::get(
-            $this->getDatafeedsUri();
+            $this->getDatafeedsUri(),
             $this->getTokenHeader()
         );
         return _GSC_AtomParser::parseDatafeeds($resp->body);
