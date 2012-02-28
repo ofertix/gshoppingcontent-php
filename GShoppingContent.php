@@ -36,6 +36,11 @@
  * @example examples/InsertAccount.php Inserting a subaccount
  * @example examples/UpdateAccount.php Updating a subaccount
  * @example examples/DeleteAccount.php Deleting a subaccount
+ * @example examples/GetDatafeed.php Getting a datafeed
+ * @example examples/GetDatafeeds.php Getting a list of datafeed
+ * @example examples/InsertDatafeed.php Inserting a datafeed
+ * @example examples/UpdateDatafeed.php Updating a datafeed
+ * @example examples/DeleteDatafeed.php Deleting a datafeed
  **/
 
 
@@ -633,12 +638,12 @@ class GSC_Client
     /**
      * Get a datafeed.
      *
-     * @param string $accountId The account id.
+     * @param string $datafeedId The datafeed id.
      * @return GSC_Datafeed or GSC_Errors parsed from the response.
      */
-    public function getDatafeed($accountId) {
+    public function getDatafeed($datafeedId) {
         $resp = _GSC_Http::get(
-            $this->getDatafeedsUri($accountId),
+            $this->getDatafeedsUri($datafeedId),
             $this->getTokenHeader()
           );
         return _GSC_AtomParser::parseDatafeeds($resp->body);
