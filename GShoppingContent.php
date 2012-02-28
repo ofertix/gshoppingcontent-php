@@ -1043,6 +1043,14 @@ class _GSC_Tags {
     public static $totalResults = array(_GSC_Ns::openSearch, 'totalResults');
 
     /**
+     * <openSearch:itemsPerPage> element
+     *
+     * @var array
+     * @see _GSC_AtomElement::getItemsPerPage()
+     **/
+    public static $itemsPerPage = array(_GSC_Ns::openSearch, 'itemsPerPage');
+
+    /**
      * <app:edited> element
      *
      * @var array
@@ -1322,6 +1330,26 @@ class _GSC_Tags {
     public static $processing_status = array(_GSC_Ns::sc, 'processing_status');
 
     /**
+     * <sc:feed_destination> element
+     *
+     * @var array
+     * @see GSC_Datafeed::addFeedDestination(),
+     *      GSC_Datafeed::getFeedDestinations(),
+     *      GSC_Datafeed::getFeedDestination(),
+     *      GSC_Datafeed::getFeedDestinationEnabled(),
+     *      GSC_Datafeed::clearAllFeedDestinations()
+     **/
+    public static $feed_destination = array(_GSC_Ns::sc, 'feed_destination');
+
+    /**
+     * <sc:channel> element
+     *
+     * @var array
+     * @see GSC_Datafeed::setChannel(), GSC_Datafeed::getChannel()
+     **/
+    public static $datafeedChannel = array(_GSC_Ns::sc, 'channel');
+
+    /**
      * <scp:price> element
      *
      * @var array
@@ -1565,7 +1593,7 @@ class _GSC_Tags {
      * <scp:channel> element
      *
      * @var array
-     * @see GSC_Product::setsetChannel(), GSC_Product::getsetChannel()
+     * @see GSC_Product::setChannel(), GSC_Product::getChannel()
      **/
     public static $channel = array(_GSC_Ns::scp, 'channel');
 
@@ -2068,6 +2096,15 @@ abstract class _GSC_AtomElement
      **/
     function getTotalResults() {
         return $this->getFirstValue(_GSC_Tags::$totalResults);
+    }
+
+    /**
+     * Get the items per page of search results.
+     *
+     * @return string The items per page of search results.
+     **/
+    function getItemsPerPage() {
+        return $this->getFirstValue(_GSC_Tags::$itemsPerPage);
     }
 
     /**
@@ -3887,6 +3924,79 @@ class GSC_Datafeed extends _GSC_AtomElement {
         } else {
             return '';
         }
+    }
+
+    /**
+     * Get the channel of the datafeed.
+     *
+     * @return string The channel of the datafeed.
+     **/
+    public function getChannel() {
+        return $this->getFirstValue(_GSC_Tags::$datafeedChannel);
+    }
+
+    /**
+     * Set the channel of the datafeed.
+     *
+     * @param string $channel The channel to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setChannel($channel) {
+        return $this->setFirstValue(_GSC_Tags::$datafeedChannel, $channel);
+    }
+
+    /**
+     * Add a feed destination to the product.
+     *
+     * @param string $destination The destination to add.
+     * @param string $enabled The enabled status.
+     * @return DOMElement The element that was created.
+     **/
+    function addFeedDestination($destination, $enabled) {
+        $el = $this->create(_GSC_Tags::$feed_destination);
+        $el->setAttribute('dest', $destination);
+        $el->setAttribute('enabled', $enabled);
+        return $el;
+    }
+
+    /**
+     * Get the feed destinations.
+     *
+     * @return DOMNodeList A list of all matching DOMElements.
+     **/
+    function getFeedDestinations() {
+        return $this->getAll(_GSC_Tags::$feed_destination);
+    }
+
+    /**
+     * Get the destination from the feed destination element.
+     *
+     * @param DOMElement $destinationNode A DOM Element from
+     *                                    getFeedDestinations.
+     * @return string The destination of the element.
+     **/
+    function getFeedDestination($destinationNode) {
+        return $destinationNode->getAttribute('dest');
+    }
+
+    /**
+     * Get the enabled status from the feed destination element.
+     *
+     * @param DOMElement $destinationNode A DOM Element from
+     *                                    getFeedDestinations.
+     * @return string The enabled status of the element.
+     **/
+    function getFeedDestinationEnabled($destinationNode) {
+        return $destinationNode->getAttribute('enabled');
+    }
+
+    /**
+     * Clear all the destinations from this datafeed.
+     *
+     * @return void
+     **/
+    function clearAllFeedDestinations() {
+        $this->deleteAll(_GSC_Tags::$feed_destination);
     }
 
     /**
