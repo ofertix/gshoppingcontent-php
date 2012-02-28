@@ -21,8 +21,21 @@
  * @author afshar@google.com, dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
+ * @example examples/GetProduct.php Getting a product
+ * @example examples/GetProducts.php Getting a list of products
  * @example examples/InsertProduct.php Inserting a product
- * @example examples/InsertBatchProduct.php Making a batch request
+ * @example examples/UpdateProduct.php Updating a product
+ * @example examples/DeleteProduct.php Deleting a product
+ * @example examples/UseDryRun.php Using the dry-run flag
+ * @example examples/UseWarnings.php Using the warnings flag
+ * @example examples/InsertBatchProduct.php Making a batch insert request
+ * @example examples/UpdateBatchProduct.php Making a batch update request
+ * @example examples/DeleteBatchProduct.php Making a batch delete request
+ * @example examples/GetAccount.php Getting a subaccount
+ * @example examples/GetAccounts.php Getting a list of subaccounts
+ * @example examples/InsertAccount.php Inserting a subaccount
+ * @example examples/UpdateAccount.php Updating a subaccount
+ * @example examples/DeleteAccount.php Deleting a subaccount
  **/
 
 
@@ -3629,7 +3642,7 @@ class GSC_ManagedAccountList extends _GSC_AtomElement {
         $accounts = array();
         for($pos=0; $pos<$count; $pos++) {
             $child = $list->item($pos);
-            $product = new GSC_ManagedAccount($this->doc, $child);
+            $account = new GSC_ManagedAccount($this->doc, $child);
             array_push($accounts, $account);
         }
         return $accounts;

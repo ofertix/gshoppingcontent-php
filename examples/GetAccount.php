@@ -1,6 +1,6 @@
 <?php
 /**
- * Example to delete a product.
+ * Example to get a subaccount.
  *
  * Copyright 2011 Google, Inc
  *
@@ -24,7 +24,6 @@
 
 // import our library
 require_once('GShoppingContent.php');
-require_once('BuildMockProduct.php');
 
 // Get the user credentials
 $creds = Credentials::get();
@@ -33,23 +32,9 @@ $creds = Credentials::get();
 $client = new GSC_Client($creds["merchantId"]);
 $client->login($creds["email"], $creds["password"]);
 
-// Now enter some product data
-$id = "SKU124";
-$country = "US";
-$language = "en";
-$product = buildMockProduct($id, $country, $language);
-
-// Finally send the data to the API
-$entry = $client->insertProduct($product);
-echo 'Inserted: ' . $entry->getTitle() . "\n";
-
-// Delete the product
-$client->deleteProduct($entry);
-echo "Delete succeeded\n";
-
-// Verify the product is deleted
-$errors = $client->getProduct($id, $country, $language);
-echo 'Response Tag after Delete: ' . $errors->model->tagName . "\n";
+$accountId = "123456";
+$account = $client->getAccount($accountId);
+echo 'Retrieved: ' . $account->getTitle() . "\n";
 
 /**
  * Credentials - Enter your own values

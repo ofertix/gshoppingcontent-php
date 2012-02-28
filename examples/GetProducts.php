@@ -1,6 +1,6 @@
 <?php
 /**
- * Example to insert a product.
+ * Example to get a list of products.
  *
  * Copyright 2011 Google, Inc
  *

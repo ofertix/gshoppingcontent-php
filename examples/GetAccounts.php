@@ -1,6 +1,6 @@
 <?php
 /**
- * Example to delete a product.
+ * Example to get all subaccounts or a subset.
  *
  * Copyright 2011 Google, Inc
  *
@@ -24,7 +24,6 @@
 
 // import our library
 require_once('GShoppingContent.php');
-require_once('BuildMockProduct.php');
 
 // Get the user credentials
 $creds = Credentials::get();
@@ -33,23 +32,25 @@ $creds = Credentials::get();
 $client = new GSC_Client($creds["merchantId"]);
 $client->login($creds["email"], $creds["password"]);
 
-// Now enter some product data
-$id = "SKU124";
-$country = "US";
-$language = "en";
-$product = buildMockProduct($id, $country, $language);
+// Get all accounts
+$allAccounts = $client->getAccounts();
+echo 'Total Number of Accounts: ' . count($allAccounts->getAccounts()) . "\n";
 
-// Finally send the data to the API
-$entry = $client->insertProduct($product);
-echo 'Inserted: ' . $entry->getTitle() . "\n";
+// Get list containing first account
+$maxResults = "1";
+$feed = $client->getAccounts($maxResults);
+echo 'Total Results: ' . $feed->getTotalResults() . "\n";
+$accounts = $feed->getAccounts();
+$account = $accounts[0];
+echo 'First Account: ' . $account->getTitle() . "\n";
 
-// Delete the product
-$client->deleteProduct($entry);
-echo "Delete succeeded\n";
-
-// Verify the product is deleted
-$errors = $client->getProduct($id, $country, $language);
-echo 'Response Tag after Delete: ' . $errors->model->tagName . "\n";
+// Get list containing second account (and so on, paging through results)
+$maxResults = "1";
+$startIndex = "2";
+$nextFeed = $client->getAccounts($maxResults, $startIndex);
+$accounts = $nextFeed->getAccounts();
+$account = $accounts[0];
+echo 'Second Account: ' . $account->getTitle() . "\n";
 
 /**
  * Credentials - Enter your own values

@@ -1,6 +1,6 @@
 <?php
 /**
- * Example to insert a product.
+ * Example to update a product in batch.
  *
  * Copyright 2011 Google, Inc
  *

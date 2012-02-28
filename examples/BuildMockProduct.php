@@ -1,6 +1,6 @@
 <?php
 /**
- * Example to insert a product.
+ * Mock product builder to help examples.
  *
  * Copyright 2011 Google, Inc
  *

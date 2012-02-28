@@ -1,6 +1,6 @@
 <?php
 /**
- * Example to insert a product.
+ * Example to use the warnings parameter.
  *
  * Copyright 2011 Google, Inc
  *
