@@ -1345,9 +1345,10 @@ class _GSC_Tags {
      * <sc:channel> element
      *
      * @var array
-     * @see GSC_Datafeed::setChannel(), GSC_Datafeed::getChannel()
+     * @see GSC_Product::setChannel(), GSC_Product::getChannel(),
+     *      GSC_Datafeed::setChannel(), GSC_Datafeed::getChannel()
      **/
-    public static $datafeedChannel = array(_GSC_Ns::sc, 'channel');
+    public static $channel = array(_GSC_Ns::sc, 'channel');
 
     /**
      * <scp:price> element
@@ -1597,14 +1598,6 @@ class _GSC_Tags {
      * @see GSC_Product::setYear(), GSC_Product::getYear()
      **/
     public static $year = array(_GSC_Ns::scp, 'year');
-
-    /**
-     * <scp:channel> element
-     *
-     * @var array
-     * @see GSC_Product::setChannel(), GSC_Product::getChannel()
-     **/
-    public static $channel = array(_GSC_Ns::scp, 'channel');
 
     /**
      * <scp:gender> element
@@ -3968,7 +3961,7 @@ class GSC_Datafeed extends _GSC_AtomElement {
      * @return string The channel of the datafeed.
      **/
     public function getChannel() {
-        return $this->getFirstValue(_GSC_Tags::$datafeedChannel);
+        return $this->getFirstValue(_GSC_Tags::$channel);
     }
 
     /**
@@ -3978,7 +3971,7 @@ class GSC_Datafeed extends _GSC_AtomElement {
      * @return DOMElement The element that was changed.
      **/
     public function setChannel($channel) {
-        return $this->setFirstValue(_GSC_Tags::$datafeedChannel, $channel);
+        return $this->setFirstValue(_GSC_Tags::$channel, $channel);
     }
 
     /**
