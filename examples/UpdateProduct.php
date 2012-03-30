@@ -43,7 +43,6 @@ echo 'Price: ' . $entry->getPrice() . "\n\n";
 
 // Update the price and send updated product
 $entry->setPrice("20", "usd");
-$entry->setBatchOperation("update");
 $updatedEntry = $client->updateProduct($entry);
 
 echo 'Inserted: ' . $updatedEntry->getTitle() . "\n";
