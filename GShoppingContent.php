@@ -3260,7 +3260,8 @@ class GSC_Product extends _GSC_AtomElement {
     function addExcludedDestination($destination) {
         $el = $this->getCreateFirst(_GSC_Tags::$control);
         $child = $this->create(_GSC_Tags::$excluded_destination);
-        $child.setAttribute('dest', $destination);
+        $child->setAttribute('dest', $destination);
+        $el->appendChild($child);
         return $child;
     }
 
@@ -3985,6 +3986,7 @@ class GSC_Datafeed extends _GSC_AtomElement {
         $el = $this->create(_GSC_Tags::$feed_destination);
         $el->setAttribute('dest', $destination);
         $el->setAttribute('enabled', $enabled);
+        $this->model->appendChild($el);
         return $el;
     }
 
