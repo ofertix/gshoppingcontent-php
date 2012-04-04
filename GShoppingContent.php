@@ -369,9 +369,16 @@ class GSC_Client
      *
      * @param string $maxResults The max results desired. Defaults to null.
      * @param string $startToken The start token for the query. Defaults to null.
+     * @param string $performanceStart The start date (inclusive) of click data
+     *                                 returned. Should be represented as
+     *                                 YYYY-MM-DD; not appended if left as None.
+     * @param string $performanceEnd The end date (inclusive) of click data
+     *                               returned. Should be represented as
+     *                               YYYY-MM-DD; not appended if left as None.
      * @return GSC_ProductList or GSC_Errors parsed from the response.
      */
-    public function getProducts($maxResults=null, $startToken=null) {
+    public function getProducts($maxResults=null, $startToken=null,
+                                $performanceStart=null, $performanceEnd=null) {
         $feedUri = $this->getFeedUri();
 
         $queryParams = array();
@@ -380,6 +387,12 @@ class GSC_Client
         }
         if ($startToken != null) {
             array_push($queryParams, 'start-token=' . $startToken);
+        }
+        if ($performanceStart != null) {
+            array_push($queryParams, 'performance.start=' . $performanceStart);
+        }
+        if ($performanceEnd != null) {
+            array_push($queryParams, 'performance.end=' . $performanceEnd);
         }
 
         if (count($queryParams) > 0) {
@@ -1204,6 +1217,23 @@ class _GSC_Tags {
     public static $group = array(_GSC_Ns::sc, 'group');
 
     /**
+     * <sc:performance> element
+     *
+     * @var array
+     * @see GSC_Product::getDatapoints()
+     **/
+    public static $performance = array(_GSC_Ns::sc, 'performance');
+
+    /**
+     * <sc:datapoint> element
+     *
+     * @var array
+     * @see GSC_Product::getDatapoints(), GSC_Product::getDatapointClicks(),
+     *      GSC_Product::getDatapointDate()
+     **/
+    public static $datapoint = array(_GSC_Ns::sc, 'datapoint');
+
+    /**
      * <sc:warnings> element
      *
      * @var array
@@ -1215,7 +1245,9 @@ class _GSC_Tags {
      * <sc:warning> element
      *
      * @var array
-     * @see GSC_Product::getWarnings()
+     * @see GSC_Product::getWarnings(), GSC_Product::getWarningCode(),
+     *      GSC_Product::getWarningDomain(), GSC_Product::getWarningLocation(),
+     *      GSC_Product::getWarningMessage()
      **/
     public static $warning = array(_GSC_Ns::sc, 'warning');
 
@@ -2410,6 +2442,36 @@ class GSC_Product extends _GSC_AtomElement {
         foreach ($attributes as $attribute) {
             $group->appendChild($attribute);
         }
+    }
+
+    /**
+     * Get the performance datapoints.
+     *
+     * @return DOMNodeList The list of datapoints as DOM Elements.
+     **/
+    public function getDatapoints() {
+        $performance = $this->getFirst(_GSC_Tags::$performance);
+        return $this->getAll(_GSC_Tags::$datapoint, $performance);
+    }
+
+    /**
+     * Get the datapoint clicks.
+     *
+     * @param DOMElement $datapoint The DOM Element containing the datapoint.
+     * @return string The datapoint clicks.
+     **/
+    public function getDatapointClicks($datapoint) {
+        return $datapoint->getAttribute('clicks');
+    }
+
+    /**
+     * Get the datapoint date.
+     *
+     * @param DOMElement $datapoint The DOM Element containing the datapoint.
+     * @return string The datapoint date.
+     **/
+    public function getDatapointDate($datapoint) {
+        return $datapoint->getAttribute('date');
     }
 
     /**
