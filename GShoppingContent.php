@@ -1208,7 +1208,7 @@ class _GSC_Tags {
      * <sc:image_link> element
      *
      * @var array
-     * @see GSC_Product::addImageLink(), GSC_Product::clearAllImageLinks()
+     * @see GSC_Product::setImageLink(), GSC_Product::getImageLink()
      **/
     public static $image_link = array(_GSC_Ns::sc, 'image_link');
 
@@ -1890,7 +1890,8 @@ abstract class _GSC_AtomElement
      **/
     protected function setFirstValue($tag, $val, $parent=null) {
         $child = $this->getCreateFirst($tag, $parent);
-        $child->nodeValue = $val;
+        $textNode = $this->doc->createTextNode($val);
+        $child->appendChild($textNode);
         return $child;
     }
 
