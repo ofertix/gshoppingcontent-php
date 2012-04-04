@@ -937,7 +937,7 @@ class _GSC_Tags {
      * The <batch:status> tag.
      *
      * @var array
-     * @see GSC_Product::getBatchStatus()
+     * @see GSC_Product::getBatchStatus(), GSC_Product::getBatchStatusReason()
      **/
     public static $status = array(_GSC_Ns::batch, 'status');
 
@@ -3479,7 +3479,12 @@ class GSC_Product extends _GSC_AtomElement {
      **/
     function getBatchStatus() {
         $el = $this->getFirst(_GSC_Tags::$status);
-        return $el->getAttribute('code');
+        if ($el) {
+            return $el->getAttribute('code');
+        }
+        else {
+            return '';
+        }
     }
 
     /**
@@ -3489,7 +3494,12 @@ class GSC_Product extends _GSC_AtomElement {
      **/
     function getBatchStatusReason() {
         $el = $this->getFirst(_GSC_Tags::$status);
-        return $el->getAttribute('reason');
+        if ($el) {
+            return $el->getAttribute('reason');
+        }
+        else {
+            return '';
+        }
     }
 
     /**
