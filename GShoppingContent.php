@@ -537,6 +537,71 @@ class GSC_Client
     }
 
     /**
+     * Create a GSC_ProductList with a specified batch operation.
+     *
+     * @param array $products The list of products to add in batch.
+     * @param string $operation The batch operation desired.
+     * @return GSC_ProductList The constructed batch feed.
+     **/
+    public function _createBatchFeed($products, $operation) {
+        $productsBatch = new GSC_ProductList();
+
+        $count = $products->length;
+        for($pos=0; $pos<$count; $pos++) {
+            $product = $products->item($pos);
+            $product->setBatchOperation($operation);
+            $productsBatch->addProduct($product);
+        }
+
+        return $productsBatch;
+    }
+
+    /**
+     * Insert a list of products.
+     *
+     * @param array $products The list of products to insert in batch.
+     * @param boolean $warnings A boolean to determine if the warnings should be
+     *                          included. Defaults to false.
+     * @param boolean $dryRun A boolean to determine if the dry-run should be
+     *                        included. Defaults to false.
+     * @return GSC_ProductList The returned results from the batch.
+     **/
+    public function insertProducts($products, $warnings=false, $dryRun=false) {
+        $productsBatch = $this->_createBatchFeed($products, 'insert');
+        return $this->batch($productsBatch, $warnings, $dryRun);
+    }
+
+    /**
+     * Update a list of products.
+     *
+     * @param array $products The list of products to update in batch.
+     * @param boolean $warnings A boolean to determine if the warnings should be
+     *                          included. Defaults to false.
+     * @param boolean $dryRun A boolean to determine if the dry-run should be
+     *                        included. Defaults to false.
+     * @return GSC_ProductList The returned results from the batch.
+     **/
+    public function updateProducts($products, $warnings=false, $dryRun=false) {
+        $productsBatch = $this->_createBatchFeed($products, 'update');
+        return $this->batch($productsBatch, $warnings, $dryRun);
+    }
+
+    /**
+     * Delete a list of products.
+     *
+     * @param array $products The list of products to delete in batch.
+     * @param boolean $warnings A boolean to determine if the warnings should be
+     *                          included. Defaults to false.
+     * @param boolean $dryRun A boolean to determine if the dry-run should be
+     *                        included. Defaults to false.
+     * @return GSC_ProductList The returned results from the batch.
+     **/
+    public function deleteProducts($products, $warnings=false, $dryRun=false) {
+        $productsBatch = $this->_createBatchFeed($products, 'delete');
+        return $this->batch($productsBatch, $warnings, $dryRun);
+    }
+
+    /**
      * Get all subaccounts.
      *
      * @param string $maxResults The max results desired. Defaults to null.
