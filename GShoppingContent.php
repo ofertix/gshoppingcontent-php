@@ -926,6 +926,14 @@ class _GSC_Tags {
     public static $batchId = array(_GSC_Ns::batch, 'id');
 
     /**
+     * The <batch:interrupted> tag.
+     *
+     * @var array
+     * @see GSC_Product::getBatchInterruptedAttribute()
+     **/
+    public static $interrupted = array(_GSC_Ns::batch, 'interrupted');
+
+    /**
      * The <batch:operation> tag.
      *
      * @var array
@@ -3448,6 +3456,24 @@ class GSC_Product extends _GSC_AtomElement {
      **/
     function setBatchId($batchId) {
         return $this->setFirstValue(_GSC_Tags::$batchId, $batchId);
+    }
+
+    /**
+     * Get the desired attribute from the batch interrupted element.
+     *
+     * @param string $attribute The desired attribute from interrupted element.
+     *                          Possible values include 'reason', 'success',
+     *                          'failures' and 'parsed'.
+     * @return string The value of the attribute.
+     **/
+    function getBatchInterruptedAttribute($attribute) {
+        $el = $this->getFirst(_GSC_Tags::$interrupted);
+        if ($el) {
+            return $el->getAttribute($attribute);
+        }
+        else {
+            return '';
+        }
     }
 
     /**
