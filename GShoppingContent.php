@@ -918,6 +918,14 @@ class _GSC_Ns {
 **/
 class _GSC_Tags {
     /**
+     * The <batch:id> tag.
+     *
+     * @var array
+     * @see GSC_Product::setBatchId(), GSC_Product::getBatchId()
+     **/
+    public static $batchId = array(_GSC_Ns::batch, 'id');
+
+    /**
      * The <batch:operation> tag.
      *
      * @var array
@@ -3421,6 +3429,25 @@ class GSC_Product extends _GSC_AtomElement {
      **/
     function clearAllSizes() {
         $this->deleteAll(_GSC_Tags::$size);
+    }
+
+    /**
+     * Get the batch id of the product.
+     *
+     * @return string The batch id of the product.
+     **/
+    function getBatchId() {
+        return $this->getFirstValue(_GSC_Tags::$batchId);
+    }
+
+    /**
+     * Set the batch id of the product.
+     *
+     * @param string $batchId The id to set.
+     * @return DOMElement The element that was changed.
+     **/
+    function setBatchId($batchId) {
+        return $this->setFirstValue(_GSC_Tags::$batchId, $batchId);
     }
 
     /**
