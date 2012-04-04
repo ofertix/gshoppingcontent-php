@@ -546,9 +546,7 @@ class GSC_Client
     public function _createBatchFeed($products, $operation) {
         $productsBatch = new GSC_ProductList();
 
-        $count = $products->length;
-        for($pos=0; $pos<$count; $pos++) {
-            $product = $products->item($pos);
+        foreach ($products as $product) {
             $product->setBatchOperation($operation);
             $productsBatch->addProduct($product);
         }
@@ -2394,7 +2392,7 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
-     * Set the value of a named generic attribute.
+     * Set the value of a named generic group.
      *
      * @param string $groupName The generic group name.
      * @param array $attributes The list of generic attributes in the group.
