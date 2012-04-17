@@ -59,6 +59,11 @@ const CLIENTLOGIN_URI = 'https://www.google.com/accounts/ClientLogin';
 const CLIENTLOGIN_SVC = 'structuredcontent';
 
 /**
+ * Auth scope for authorizing against the Content API for Shopping.
+ **/
+const OAUTH_SCOPE = 'https://www.googleapis.com/auth/structuredcontent';
+
+/**
  * User Agent string for all requests.
  **/
 const USER_AGENT = 'scapi-php';
@@ -67,6 +72,16 @@ const USER_AGENT = 'scapi-php';
  * Base API URI.
  **/
 const BASE = 'https://content.googleapis.com/content/v1/';
+
+/**
+ * Google's endpoint for OAuth 2.0 authentication.
+ **/
+const AUTH_URI = 'https://accounts.google.com/o/oauth2/auth';
+
+/**
+ * Google's endpoint for exchanging OAuth 2.0 tokens
+ **/
+const TOKEN_URI = 'https://accounts.google.com/o/oauth2/token';
 
 
 
@@ -140,18 +155,13 @@ class _GSC_Http
      * Make an HTTP GET request with a Google Authorization header.
      *
      * @param string $uri The URI to post to.
-     * @param string $auth The authorization token.
+     * @param _GSC_Token $token The authorization token.
      * @return _GSC_Response The response to the request.
      **/
-    public static function get($uri, $auth) {
+    public static function get($uri, $token) {
         $ch = self::ch();
-        $headers = array(
-            'Content-Type: application/atom+xml',
-            'Authorization: ' . $auth
-        );
         curl_setopt($ch, CURLOPT_URL, $uri);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        return self::req($ch);
+        return $token->makeAuthenticatedRequest($ch);
     }
 
     /**
@@ -159,14 +169,18 @@ class _GSC_Http
      *
      * @param string $uri The URI to post to.
      * @param array $fields The form fields to post.
+     * @param array $headers The headers. Defaults to null.
      * @return _GSC_Response The response to the request.
      **/
-    public static function postForm($uri, $fields)
+    public static function postForm($uri, $fields, $headers=null)
     {
         $ch = self::ch();
         curl_setopt($ch, CURLOPT_URL, $uri);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+        if ($headers != null) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        }
         return self::req($ch);
     }
 
@@ -175,20 +189,15 @@ class _GSC_Http
      *
      * @param string $uri The URI to post to.
      * @param string $data The data to post.
-     * @param string $auth The authorization token.
+     * @param _GSC_Token $token The authorization token.
      * @return _GSC_Response The response to the request.
      **/
-    public static function post($uri, $data, $auth) {
+    public static function post($uri, $data, $token) {
         $ch = self::ch();
-        $headers = array(
-            'Content-Type: application/atom+xml',
-            'Authorization: ' . $auth
-        );
         curl_setopt($ch, CURLOPT_URL, $uri);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        return self::req($ch);
+        return $token->makeAuthenticatedRequest($ch);
     }
 
     /**
@@ -196,42 +205,32 @@ class _GSC_Http
      *
      * @param string $uri The URI to post to.
      * @param string $data The data to post.
-     * @param string $auth The authorization token.
+     * @param _GSC_Token $token The authorization token.
      * @return _GSC_Response The response to the request.
      **/
-    public static function put($uri, $data, $auth) {
+    public static function put($uri, $data, $token) {
         $ch = self::ch();
-        $headers = array(
-            'Content-Type: application/atom+xml',
-            'Authorization: ' . $auth
-        );
         curl_setopt($ch, CURLOPT_URL, $uri);
         // For string data, use CURLOPT_CUSTOMREQUEST instead of CURLOPT_POST
         // Can also use memory as file-like object as described in:
         // gen-x-design.com/archives/making-restful-requests-in-php/
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        return self::req($ch);
+        return $token->makeAuthenticatedRequest($ch);
     }
 
     /**
      * Make an HTTP DELETE request with a Google Authorization header.
      *
      * @param string $uri The URI to post to.
-     * @param string $auth The authorization token.
+     * @param _GSC_Token $token The authorization token.
      * @return _GSC_Response The response to the request.
      **/
-    public static function delete($uri, $auth) {
+    public static function delete($uri, $token) {
         $ch = self::ch();
-        $headers = array(
-            'Content-Type: application/atom+xml',
-            'Authorization: ' . $auth
-        );
         curl_setopt($ch, CURLOPT_URL, $uri);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        return self::req($ch);
+        return $token->makeAuthenticatedRequest($ch);
     }
 
     /**
@@ -262,13 +261,55 @@ class _GSC_Http
 
 
 /**
+ * Base class for token objects.
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ **/
+abstract class _GSC_Token
+{
+    /**
+     * Returns a token string from the object.
+     *
+     * @return string The authorization token string to be sent with a request.
+     **/
+    abstract protected function getTokenString();
+
+    /**
+     * Makes an authenticated request.
+     *
+     * @param CURL $ch The curl session.
+     * @return _GSC_Response The response to the request.
+     **/
+    abstract function makeAuthenticatedRequest($ch);
+}
+
+/**
  * Handles making ClientLogin requests to authenticate and authorize.
  *
  * @package GShoppingContent
  * @version 1.1
  **/
-class _GSC_ClientLogin
+class _GSC_ClientLoginToken extends _GSC_Token
 {
+    /**
+     * Token used to access user data.
+     *
+     * @var string
+     **/
+    private $token;
+
+    /**
+     * Create a new _GSC_ClientLoginToken instance.
+     *
+     * @param string $token The string authentication token.
+     * @author dhermes@google.com
+     **/
+    function __construct($token=null)
+    {
+        $this->token = $token;
+    }
+
     /**
      * Log in to ClientLogin.
      *
@@ -296,7 +337,274 @@ class _GSC_ClientLogin
                 $tokens[$key] = $val;
             }
         }
-        return $tokens['Auth'];
+        return new _GSC_ClientLoginToken($tokens['Auth']);
+    }
+
+    /**
+     * Returns a token string from the object.
+     *
+     * @return string The authorization token string to be sent with a request.
+     **/
+    protected function getTokenString() {
+        return 'GoogleLogin auth=' . $this->token;
+    }
+
+    /**
+     * Makes an authenticated request.
+     *
+     * @param CURL $ch The curl session.
+     * @return _GSC_Response The response to the request.
+     **/
+    public function makeAuthenticatedRequest($ch) {
+        $headers = array(
+            'Content-Type: application/atom+xml',
+            'Authorization: ' . $this->getTokenString()
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        return _GSC_Http::req($ch);
+    }
+}
+
+
+/**
+ * Handles authenticating and authorizing with OAuth 2.0.
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ **/
+class _GSC_OAuth2Token extends _GSC_Token
+{
+    /**
+     * Client ID for the application.
+     *
+     * @var string
+     **/
+    private $clientId;
+
+    /**
+     * Client secret for the application.
+     *
+     * @var string
+     **/
+    private $clientSecret;
+
+    /**
+     * User agent for request headers. Describes application.
+     *
+     * @var string
+     **/
+    private $userAgent;
+
+    /**
+     * Token used to access user data.
+     *
+     * @var string
+     **/
+    private $accessToken;
+
+    /**
+     * Token used to refresh access token.
+     *
+     * @var string
+     **/
+    private $refreshToken;
+
+    /**
+     * Redirect URI for after authorization occurs.
+     *
+     * @var string
+     **/
+    private $redirectUri;
+
+    /**
+     * Flag to determine if the access token is valid.
+     *
+     * @var boolean
+     **/
+    private $invalid;
+
+    /**
+     * Create a new _GSC_OAuth2Token instance.
+     *
+     * @param string $clientId The client ID for the token.
+     * @param string $clientSecret The client secret for the token.
+     * @param string $userAgent The user agent. Describes application.
+     * @author dhermes@google.com
+     **/
+    function __construct($clientId, $clientSecret, $userAgent)
+    {
+        $this->clientId = $clientId;
+        $this->clientSecret = $clientSecret;
+        $this->userAgent = $userAgent;
+        $this->invalid = false;
+    }
+
+    /**
+     * Extract tokens from a response body.
+     *
+     * @param string $body The response body to be parsed.
+     * @return void
+     **/
+    private function extractTokens($body) {
+        $bodyDict = json_decode($body, true);
+        // Will throw error if access_token not returned
+        $this->accessToken = $bodyDict['access_token'];
+        if (array_key_exists('refresh_token', $bodyDict)) {
+            $this->refreshToken = $bodyDict['refresh_token'];
+        }
+
+        // TODO (dhermes) Cover case when 'expires_in' is in $bodyDict
+    }
+
+    /**
+     * Refresh the access token.
+     *
+     * @return _GSC_Response The response to the refresh request.
+     **/
+    private function refresh() {
+        $body = array(
+            'grant_type' => 'refresh_token',
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'refresh_token' => $this->refreshToken
+        );
+
+        $headers = array(
+            'Content-Type: application/x-www-form-urlencoded',
+            'user-agent: ' . $this->userAgent
+        );
+
+        $urlEncodedBody = http_build_query($body);
+        $resp = _GSC_Http::postForm(TOKEN_URI, $urlEncodedBody, $headers);
+
+        if ($resp->code == 200) {
+            $this->extractTokens($resp->body);
+        }
+        else {
+            $this->invalid = true;
+        }
+
+        return $resp;
+    }
+
+    /**
+     * Generate a URI to redirect to the provider.
+     *
+     * @param string $redirectUri Either the string 'oob' for a non-web-based
+     *                            application, or a URI that handles the
+     *                            callback from the authorization server.
+     * @param string $responseType Either the string 'code' for server-side
+     *                             or native application, or the string 'token'
+     *                             for client-side application.
+     * @param string $accessType Either the string 'offline' to request a
+     *                           refresh token or 'online'.
+     * @return string The URI to redirect to.
+     **/
+    public function generateAuthorizeUrl($redirectUri='oob',
+                                         $responseType='code',
+                                         $accessType='offline') {
+        $this->redirectUri = $redirectUri;
+
+        $query = array(
+            'response_type' => $responseType,
+            'client_id' => $this->clientId,
+            'redirect_uri' => $redirectUri,
+            'scope' => OAUTH_SCOPE,
+            'access_type' => $accessType
+        );
+
+        return AUTH_URI . '?' . http_build_query($query);
+    }
+
+    /**
+     * Exchanges a code for an access token.
+     *
+     * @param string|array $code A string or array with 'code' as a key. This
+     *                           code can be exchanged for an access token.
+     * @return _GSC_OAuth2Token The current token (this) after access token
+     *                          is retrieved and set.
+     * @throws _GSC_ClientError if the response code is not 200.
+     **/
+    public function getAccessToken($code) {
+        if (!(is_string($code))) {
+            $code = $code['code'];
+        }
+
+        $body = array(
+            'grant_type' => 'authorization_code',
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'code' => $code,
+            'redirect_uri' => $this->redirectUri,
+            'scope' => OAUTH_SCOPE
+        );
+
+        $headers = array(
+            'Content-Type: application/x-www-form-urlencoded',
+            'user-agent: ' . $this->userAgent
+        );
+
+        $urlEncodedBody = http_build_query($body);
+        $resp = _GSC_Http::postForm(TOKEN_URI, $urlEncodedBody, $headers);
+
+        if ($resp->code == 200) {
+            $this->extractTokens($resp->body);
+            return $this;
+        }
+        else {
+            $errorMsg = 'Invalid response ' .  $resp->code . '.';
+
+            $errorDict = json_decode($resp->body, true);
+            if ($errorDict != null) {
+                if (array_key_exists('error', $errorDict)) {
+                    $errorMsg = $errorDict['error'];
+                }
+            }
+
+            throw new _GSC_ClientError($errorMsg);
+        }
+    }
+
+    /**
+     * Returns a token string from the object.
+     *
+     * @return string The authorization token string to be sent with a request.
+     **/
+    protected function getTokenString() {
+        return 'OAuth ' . $this->accessToken;
+    }
+
+    /**
+     * Makes an authenticated request, gets new access token if fails.
+     *
+     * @param CURL $ch The curl session.
+     * @return _GSC_Response The response to the request.
+     **/
+    public function makeAuthenticatedRequest($ch) {
+        $headers = array(
+            'Content-Type: application/atom+xml',
+            'Authorization: ' . $this->getTokenString()
+        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        $resp = _GSC_Http::req($ch);
+        if ($resp->code == 401) {
+            $refreshResponse = $this->refresh();
+            if ($this->invalid) {
+                return $refreshResponse;
+            }
+            else {
+                $newHeaders = array(
+                    'Content-Type: application/atom+xml',
+                    'Authorization: ' . $this->getTokenString()
+                );
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $newHeaders);
+                return _GSC_Http::req($ch);
+            }
+        }
+        else {
+            return $resp;
+        }
     }
 }
 
@@ -326,7 +634,7 @@ class GSC_Client
     /**
      * Authorization token for the user.
      *
-     * @var string
+     * @var _GSC_Token
      **/
     private $token;
 
@@ -356,12 +664,35 @@ class GSC_Client
     /**
      * Log in with ClientLogin and set the auth token.
      *
+     * Included for backwards compatability purposes.
+     *
      * @param string $email Google account email address.
      * @param string $password Google account password.
      * @return void
      **/
     public function login($email, $password) {
-        $this->token = _GSC_ClientLogin::login($email, $password);
+        $this->token = _GSC_ClientLoginToken::login($email, $password);
+    }
+
+    /**
+     * Log in with ClientLogin and set the auth token.
+     *
+     * @param string $email Google account email address.
+     * @param string $password Google account password.
+     * @return void
+     **/
+    public function clientLogin($email, $password) {
+        $this->token = _GSC_ClientLoginToken::login($email, $password);
+    }
+
+    /**
+     * Set the authentication token.
+     *
+     * @param _GSC_Token $token The authorization token.
+     * @return void
+     **/
+    public function setToken($token) {
+        $this->token = $token;
     }
 
     /**
@@ -401,7 +732,7 @@ class GSC_Client
 
         $resp = _GSC_Http::get(
             $feedUri,
-            $this->getTokenHeader()
+            $this->token
         );
         return _GSC_AtomParser::parse($resp->body);
     }
@@ -415,7 +746,7 @@ class GSC_Client
     public function getFromLink($link) {
         $resp = _GSC_Http::get(
             $link,
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parse($resp->body);
     }
@@ -453,7 +784,7 @@ class GSC_Client
         $resp = _GSC_Http::post(
             $feedUri,
             $product->toXML(),
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parse($resp->body);
     }
@@ -479,7 +810,7 @@ class GSC_Client
         $resp = _GSC_Http::put(
             $productUri,
             $product->toXML(),
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parse($resp->body);
     }
@@ -494,7 +825,7 @@ class GSC_Client
     public function deleteFromLink($link) {
         $resp = _GSC_Http::delete(
             $link,
-            $this->getTokenHeader()
+            $this->token
           );
 
         if ($resp->code != 200) {
@@ -544,7 +875,7 @@ class GSC_Client
         $resp = _GSC_Http::post(
             $batchUri,
             $products->toXML(),
-            $this->getTokenHeader()
+            $this->token
         );
         return _GSC_AtomParser::parse($resp->body);
     }
@@ -636,7 +967,7 @@ class GSC_Client
 
         $resp = _GSC_Http::get(
             $accountsUri,
-            $this->getTokenHeader()
+            $this->token
         );
         return _GSC_AtomParser::parseManagedAccounts($resp->body);
     }
@@ -650,7 +981,7 @@ class GSC_Client
     public function getAccount($accountId) {
         $resp = _GSC_Http::get(
             $this->getManagedAccountsUri($accountId),
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parseManagedAccounts($resp->body);
     }
@@ -665,7 +996,7 @@ class GSC_Client
         $resp = _GSC_Http::post(
             $this->getManagedAccountsUri(),
             $account->toXML(),
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parseManagedAccounts($resp->body);
     }
@@ -681,7 +1012,7 @@ class GSC_Client
         $resp = _GSC_Http::put(
             $account->getEditLink(),
             $account->toXML(),
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parseManagedAccounts($resp->body);
     }
@@ -706,7 +1037,7 @@ class GSC_Client
     public function getDatafeeds() {
         $resp = _GSC_Http::get(
             $this->getDatafeedsUri(),
-            $this->getTokenHeader()
+            $this->token
         );
         return _GSC_AtomParser::parseDatafeeds($resp->body);
     }
@@ -720,7 +1051,7 @@ class GSC_Client
     public function getDatafeed($datafeedId) {
         $resp = _GSC_Http::get(
             $this->getDatafeedsUri($datafeedId),
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parseDatafeeds($resp->body);
     }
@@ -735,7 +1066,7 @@ class GSC_Client
         $resp = _GSC_Http::post(
             $this->getDatafeedsUri(),
             $datafeed->toXML(),
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parseDatafeeds($resp->body);
     }
@@ -751,7 +1082,7 @@ class GSC_Client
         $resp = _GSC_Http::put(
             $datafeed->getEditLink(),
             $datafeed->toXML(),
-            $this->getTokenHeader()
+            $this->token
           );
         return _GSC_AtomParser::parseDatafeeds($resp->body);
     }
@@ -857,17 +1188,6 @@ class GSC_Client
 
         return $uri;
     }
-
-    /**
-     * Create a header from the authorization token.
-     *
-     * @return string The authorization header.
-     **/
-    public function getTokenHeader() {
-        $this->checkToken();
-        return 'GoogleLogin auth=' . $this->token;
-    }
-
 }
 
 
