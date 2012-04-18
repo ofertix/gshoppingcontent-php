@@ -316,16 +316,18 @@ class _GSC_ClientLoginToken extends _GSC_Token
      * @static
      * @param string $email Google account email address.
      * @param string $password Google account password.
+     * @param string $userAgent The user agent. Describes application.
+     *                          Defaults to constant string USER_AGENT.
      * @return string The Auth token from ClientLogin.
-     * @author afshar@google.com
+     * @author afshar@google.com, dhermes@google.com
      **/
-    public static function login($email, $password)
+    public static function login($email, $password, $userAgent=USER_AGENT)
     {
         $fields = array(
             'Email' => $email,
             'Passwd' => $password,
             'service' => CLIENTLOGIN_SVC,
-            'source' => USER_AGENT,
+            'source' => $userAgent,
             'accountType' => 'GOOGLE'
         );
         $resp = _GSC_Http::postForm(CLIENTLOGIN_URI, $fields);
@@ -460,6 +462,7 @@ class _GSC_OAuth2Token extends _GSC_Token
      * Refresh the access token.
      *
      * @return _GSC_Response The response to the refresh request.
+     * @throws _GSC_TokenError if the response code is not 200.
      **/
     private function refresh() {
         $body = array(
@@ -482,6 +485,7 @@ class _GSC_OAuth2Token extends _GSC_Token
         }
         else {
             $this->invalid = true;
+            self::raiseFromJson($resp);
         }
 
         return $resp;
@@ -517,13 +521,33 @@ class _GSC_OAuth2Token extends _GSC_Token
     }
 
     /**
+     * Raise an error from a JSON response object.
+     *
+     * @param _GSC_Response $response The response to some request.
+     * @throws _GSC_TokenError with contents gleaned from response.
+     * @return void
+     **/
+    private static function raiseFromJson($response) {
+        $errorMsg = 'Invalid response ' .  $response->code . '.';
+
+        $errorDict = json_decode($response->body, true);
+        if ($errorDict != null) {
+            if (array_key_exists('error', $errorDict)) {
+                $errorMsg = $errorDict['error'];
+            }
+        }
+
+        throw new _GSC_TokenError($errorMsg);
+    }
+
+    /**
      * Exchanges a code for an access token.
      *
      * @param string|array $code A string or array with 'code' as a key. This
      *                           code can be exchanged for an access token.
      * @return _GSC_OAuth2Token The current token (this) after access token
      *                          is retrieved and set.
-     * @throws _GSC_ClientError if the response code is not 200.
+     * @throws _GSC_TokenError if the response code is not 200.
      **/
     public function getAccessToken($code) {
         if (!(is_string($code))) {
@@ -552,16 +576,7 @@ class _GSC_OAuth2Token extends _GSC_Token
             return $this;
         }
         else {
-            $errorMsg = 'Invalid response ' .  $resp->code . '.';
-
-            $errorDict = json_decode($resp->body, true);
-            if ($errorDict != null) {
-                if (array_key_exists('error', $errorDict)) {
-                    $errorMsg = $errorDict['error'];
-                }
-            }
-
-            throw new _GSC_ClientError($errorMsg);
+            self::raiseFromJson($resp);
         }
     }
 
@@ -587,20 +602,20 @@ class _GSC_OAuth2Token extends _GSC_Token
         );
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
+        // Before sending the request, we copy the curl handle
+        // in case we need to send the request again.
+        $newCurlHandle = curl_copy_handle($ch);
+
         $resp = _GSC_Http::req($ch);
         if ($resp->code == 401) {
-            $refreshResponse = $this->refresh();
-            if ($this->invalid) {
-                return $refreshResponse;
-            }
-            else {
-                $newHeaders = array(
-                    'Content-Type: application/atom+xml',
-                    'Authorization: ' . $this->getTokenString()
-                );
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $newHeaders);
-                return _GSC_Http::req($ch);
-            }
+            $this->refresh();
+
+            $newHeaders = array(
+                'Content-Type: application/x-www-form-urlencoded',
+                'Authorization: ' . $this->getTokenString()
+            );
+            curl_setopt($newCurlHandle, CURLOPT_HTTPHEADER, $newHeaders);
+            return _GSC_Http::req($newCurlHandle);
         }
         else {
             return $resp;
@@ -618,6 +633,28 @@ class _GSC_OAuth2Token extends _GSC_Token
  * @author afshar@google.com
  **/
 class _GSC_ClientError extends Exception { }
+
+
+/**
+ * Base class for token errors.
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class _GSC_TokenError extends Exception { }
+
+
+/**
+ * Base class for parse errors.
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class _GSC_ParseError extends Exception { }
 
 
 /**
@@ -679,10 +716,12 @@ class GSC_Client
      *
      * @param string $email Google account email address.
      * @param string $password Google account password.
+     * @param string $userAgent The user agent. Describes application.
      * @return void
      **/
-    public function clientLogin($email, $password) {
-        $this->token = _GSC_ClientLoginToken::login($email, $password);
+    public function clientLogin($email, $password, $userAgent) {
+        $this->token = _GSC_ClientLoginToken::login($email, $password,
+                                                    $userAgent);
     }
 
     /**
@@ -2141,6 +2180,7 @@ class _GSC_AtomParser {
      *
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     * @throws _GSC_ParseError if xml is not an entry, feed or errors element.
      **/
     public static function parse($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
@@ -2154,6 +2194,8 @@ class _GSC_AtomParser {
         else if ($root->tagName == 'errors') {
             return new GSC_Errors($doc, $root);
         }
+
+        throw new _GSC_ParseError($xml);
     }
 
     /**
@@ -2161,6 +2203,7 @@ class _GSC_AtomParser {
      *
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     * @throws _GSC_ParseError if xml is not an entry, feed or errors element.
      **/
     public static function parseManagedAccounts($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
@@ -2174,6 +2217,8 @@ class _GSC_AtomParser {
         else if ($root->tagName == 'errors') {
             return new GSC_Errors($doc, $root);
         }
+
+        throw new _GSC_ParseError($xml);
     }
 
     /**
@@ -2181,6 +2226,7 @@ class _GSC_AtomParser {
      *
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     * @throws _GSC_ParseError if xml is not an entry, feed or errors element.
      **/
     public static function parseDatafeeds($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
@@ -2194,6 +2240,8 @@ class _GSC_AtomParser {
         else if ($root->tagName == 'errors') {
             return new GSC_Errors($doc, $root);
         }
+
+        throw new _GSC_ParseError($xml);
     }
 
 }
