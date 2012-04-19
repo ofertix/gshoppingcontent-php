@@ -83,6 +83,11 @@ const AUTH_URI = 'https://accounts.google.com/o/oauth2/auth';
  **/
 const TOKEN_URI = 'https://accounts.google.com/o/oauth2/token';
 
+/**
+ * Google's endpoint for revoking OAuth 2.0 tokens
+ **/
+const REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke';
+
 
 
 /**
@@ -151,6 +156,18 @@ class _GSC_Response
  **/
 class _GSC_Http
 {
+    /**
+     * Make an unsigned HTTP GET request.
+     *
+     * @param string $uri The URI to post to.
+     * @return _GSC_Response The response to the request.
+     **/
+    public static function unsignedGet($uri) {
+        $ch = self::ch();
+        curl_setopt($ch, CURLOPT_URL, $uri);
+        return _GSC_Http::req($ch);
+    }
+
     /**
      * Make an HTTP GET request with a Google Authorization header.
      *
@@ -581,6 +598,33 @@ class _GSC_OAuth2Token extends _GSC_Token
     }
 
     /**
+     * Revokes access via a refresh token.
+     *
+     * @param $refreshToken Token used to refresh access token.
+     * @return void
+     * @throws _GSC_TokenError if the response code is not 200.
+     **/
+    public function revoke($refreshToken=null) {
+        if ($refreshToken == null) {
+            $refreshToken = $this->refreshToken;
+        }
+
+        $query = array(
+            'token' => $refreshToken
+        );
+
+        $uri = REVOKE_URI . '?' . http_build_query($query);
+        $resp = _GSC_Http::unsignedGet($uri);
+
+        if ($resp->code == 200) {
+            $this->invalid = true;
+        }
+        else {
+            self::raiseFromJson($resp);
+        }
+    }
+
+    /**
      * Returns a token string from the object.
      *
      * @return string The authorization token string to be sent with a request.
@@ -722,6 +766,19 @@ class GSC_Client
     public function clientLogin($email, $password, $userAgent) {
         $this->token = _GSC_ClientLoginToken::login($email, $password,
                                                     $userAgent);
+    }
+
+    /**
+     * Set the token on the client with an unauthenticated OAuth2 token.
+     *
+     * @param string $clientId The client ID for the token.
+     * @param string $clientSecret The client secret for the token.
+     * @param string $userAgent The user agent. Describes application.
+     * @return void
+     **/
+    public function setOAuth2Token($clientId, $clientSecret, $userAgent) {
+        $this->token = new _GSC_OAuth2Token($clientId, $clientSecret,
+                                            $userAgent);
     }
 
     /**
