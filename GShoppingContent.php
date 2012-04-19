@@ -511,9 +511,10 @@ class _GSC_OAuth2Token extends _GSC_Token
     /**
      * Generate a URI to redirect to the provider.
      *
-     * @param string $redirectUri Either the string 'oob' for a non-web-based
-     *                            application, or a URI that handles the
-     *                            callback from the authorization server.
+     * @param string $redirectUri Either the string 'urn:ietf:wg:oauth:2.0:oob'
+     *                            for a non-web-based application, or a URI
+     *                            that handles the callback from the
+     *                            authorization server.
      * @param string $responseType Either the string 'code' for server-side
      *                             or native application, or the string 'token'
      *                             for client-side application.
@@ -521,9 +522,10 @@ class _GSC_OAuth2Token extends _GSC_Token
      *                           refresh token or 'online'.
      * @return string The URI to redirect to.
      **/
-    public function generateAuthorizeUrl($redirectUri='oob',
-                                         $responseType='code',
-                                         $accessType='offline') {
+    public function generateAuthorizeUrl(
+        $redirectUri='urn:ietf:wg:oauth:2.0:oob',
+        $responseType='code',
+        $accessType='offline') {
         $this->redirectUri = $redirectUri;
 
         $query = array(
