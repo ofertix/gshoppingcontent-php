@@ -2434,6 +2434,12 @@ abstract class _GSC_AtomElement
     protected function setFirstValue($tag, $val, $parent=null) {
         $child = $this->getCreateFirst($tag, $parent);
         $textNode = $this->doc->createTextNode($val);
+
+        // Remove any existing text nodes that are children
+        while ($child->hasChildNodes()) {
+            $child->removeChild($child->firstChild);
+        }
+
         $child->appendChild($textNode);
         return $child;
     }
