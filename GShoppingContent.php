@@ -511,6 +511,9 @@ class _GSC_OAuth2Token extends _GSC_Token
     /**
      * Generate a URI to redirect to the provider.
      *
+     * @param string $approvalPrompt Value that determines if user will be
+     *                               prompted to give approval. Defaults to
+     *                               'auto' but 'force' is also valid.
      * @param string $redirectUri Either the string 'urn:ietf:wg:oauth:2.0:oob'
      *                            for a non-web-based application, or a URI
      *                            that handles the callback from the
@@ -524,6 +527,7 @@ class _GSC_OAuth2Token extends _GSC_Token
      **/
     public function generateAuthorizeUrl(
         $redirectUri='urn:ietf:wg:oauth:2.0:oob',
+        $approvalPrompt='auto',
         $responseType='code',
         $accessType='offline') {
         $this->redirectUri = $redirectUri;
@@ -533,6 +537,7 @@ class _GSC_OAuth2Token extends _GSC_Token
             'client_id' => $this->clientId,
             'redirect_uri' => $redirectUri,
             'scope' => OAUTH_SCOPE,
+            'approval_prompt' => $approvalPrompt,
             'access_type' => $accessType
         );
 
