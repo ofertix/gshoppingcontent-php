@@ -720,6 +720,13 @@ class GSC_Client
 {
 
     /**
+     * Projection for the scope. Can be 'schema' (default) or 'generic'.
+     *
+     * @var string
+     **/
+    public $projection = 'schema';
+
+    /**
      * Authorization token for the user.
      *
      * @var _GSC_Token
@@ -1208,7 +1215,8 @@ class GSC_Client
      * @return string The feed URI.
      **/
     public function getFeedUri() {
-        return BASE . $this->merchantId . '/items/products/schema/';
+        return (BASE . $this->merchantId . '/items/products/' .
+                $this->projection . '/');
     }
 
     /**
