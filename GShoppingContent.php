@@ -328,6 +328,15 @@ class _GSC_ClientLoginToken extends _GSC_Token
     }
 
     /**
+     * Return the token for later use.
+     *
+     * @return string The string authentication token.
+     **/
+    function getToken() {
+        return $this->token;
+    }
+
+    /**
      * Log in to ClientLogin.
      *
      * @static
@@ -448,7 +457,6 @@ class _GSC_OAuth2Token extends _GSC_Token
      * @param string $clientId The client ID for the token.
      * @param string $clientSecret The client secret for the token.
      * @param string $userAgent The user agent. Describes application.
-     * @author dhermes@google.com
      **/
     function __construct($clientId, $clientSecret, $userAgent)
     {
@@ -456,6 +464,48 @@ class _GSC_OAuth2Token extends _GSC_Token
         $this->clientSecret = $clientSecret;
         $this->userAgent = $userAgent;
         $this->invalid = false;
+    }
+
+    /**
+     * Create a blob encapsulating the token information.
+     *
+     * @return string Blob containing token data.
+     **/
+    public function toBlob() {
+        $tokenParts = array(
+            $this->clientId,
+            $this->clientSecret,
+            $this->userAgent,
+            $this->accessToken,
+            $this->refreshToken,
+            $this->redirectUri
+        );
+
+        return implode('|', $tokenParts);
+    }
+
+    /**
+     * Create a token from a blob.
+     *
+     * @param string $blob Blob containing token data.
+     * @return _GSC_OAuth2Token Token built from blob.
+     * @author dhermes@google.com
+     **/
+    public function fromBlob($blob) {
+        $tokenParts = explode('|', $blob);
+
+        if (count($tokenParts) != 6) {
+            throw new _GSC_TokenError('Blob contains wrong number of parts.');
+        }
+
+        $this->clientId = $tokenParts[0] ? $tokenParts[0] : null;
+        $this->clientSecret = $tokenParts[1] ? $tokenParts[1] : null;
+        $this->userAgent = $tokenParts[2] ? $tokenParts[2] : null;
+        $this->accessToken = $tokenParts[3] ? $tokenParts[3] : null;
+        $this->refreshToken = $tokenParts[4] ? $tokenParts[4] : null;
+        $this->redirectUri = $tokenParts[5] ? $tokenParts[5] : null;
+
+        return $this;
     }
 
     /**
