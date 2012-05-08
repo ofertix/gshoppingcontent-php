@@ -307,7 +307,7 @@ abstract class _GSC_Token
  * @package GShoppingContent
  * @version 1.1
  **/
-class _GSC_ClientLoginToken extends _GSC_Token
+class GSC_ClientLoginToken extends _GSC_Token
 {
     /**
      * Token used to access user data.
@@ -317,7 +317,7 @@ class _GSC_ClientLoginToken extends _GSC_Token
     private $token;
 
     /**
-     * Create a new _GSC_ClientLoginToken instance.
+     * Create a new GSC_ClientLoginToken instance.
      *
      * @param string $token The string authentication token.
      * @author dhermes@google.com
@@ -356,7 +356,7 @@ class _GSC_ClientLoginToken extends _GSC_Token
                 $tokens[$key] = $val;
             }
         }
-        return new _GSC_ClientLoginToken($tokens['Auth']);
+        return new GSC_ClientLoginToken($tokens['Auth']);
     }
 
     /**
@@ -391,7 +391,7 @@ class _GSC_ClientLoginToken extends _GSC_Token
  * @package GShoppingContent
  * @version 1.1
  **/
-class _GSC_OAuth2Token extends _GSC_Token
+class GSC_OAuth2Token extends _GSC_Token
 {
     /**
      * Client ID for the application.
@@ -443,7 +443,7 @@ class _GSC_OAuth2Token extends _GSC_Token
     private $invalid;
 
     /**
-     * Create a new _GSC_OAuth2Token instance.
+     * Create a new GSC_OAuth2Token instance.
      *
      * @param string $clientId The client ID for the token.
      * @param string $clientSecret The client secret for the token.
@@ -479,7 +479,7 @@ class _GSC_OAuth2Token extends _GSC_Token
      * Refresh the access token.
      *
      * @return _GSC_Response The response to the refresh request.
-     * @throws _GSC_TokenError if the response code is not 200.
+     * @throws GSC_TokenError if the response code is not 200.
      **/
     private function refresh() {
         $body = array(
@@ -548,7 +548,7 @@ class _GSC_OAuth2Token extends _GSC_Token
      * Raise an error from a JSON response object.
      *
      * @param _GSC_Response $response The response to some request.
-     * @throws _GSC_TokenError with contents gleaned from response.
+     * @throws GSC_TokenError with contents gleaned from response.
      * @return void
      **/
     private static function raiseFromJson($response) {
@@ -561,7 +561,7 @@ class _GSC_OAuth2Token extends _GSC_Token
             }
         }
 
-        throw new _GSC_TokenError($errorMsg);
+        throw new GSC_TokenError($errorMsg);
     }
 
     /**
@@ -569,9 +569,9 @@ class _GSC_OAuth2Token extends _GSC_Token
      *
      * @param string|array $code A string or array with 'code' as a key. This
      *                           code can be exchanged for an access token.
-     * @return _GSC_OAuth2Token The current token (this) after access token
-     *                          is retrieved and set.
-     * @throws _GSC_TokenError if the response code is not 200.
+     * @return GSC_OAuth2Token The current token (this) after access token
+     *                         is retrieved and set.
+     * @throws GSC_TokenError if the response code is not 200.
      **/
     public function getAccessToken($code) {
         if (!(is_string($code))) {
@@ -609,7 +609,7 @@ class _GSC_OAuth2Token extends _GSC_Token
      *
      * @param $refreshToken Token used to refresh access token.
      * @return void
-     * @throws _GSC_TokenError if the response code is not 200.
+     * @throws GSC_TokenError if the response code is not 200.
      **/
     public function revoke($refreshToken=null) {
         if ($refreshToken == null) {
@@ -683,7 +683,7 @@ class _GSC_OAuth2Token extends _GSC_Token
  * @copyright Google Inc, 2011
  * @author afshar@google.com
  **/
-class _GSC_ClientError extends Exception { }
+class GSC_ClientError extends Exception { }
 
 
 /**
@@ -694,7 +694,7 @@ class _GSC_ClientError extends Exception { }
  * @copyright Google Inc, 2012
  * @author dhermes@google.com
  **/
-class _GSC_TokenError extends Exception { }
+class GSC_TokenError extends Exception { }
 
 
 /**
@@ -705,7 +705,49 @@ class _GSC_TokenError extends Exception { }
  * @copyright Google Inc, 2012
  * @author dhermes@google.com
  **/
-class _GSC_ParseError extends Exception { }
+class GSC_ParseError extends Exception { }
+
+
+/**
+ * Class for request errors.
+ *
+ * @package GShoppingContent
+ * @version 1.1
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_RequestError extends Exception
+{
+    /**
+     * Errors parsed from the response.
+     *
+     * @var GSC_Errors
+     **/
+    public $errors;
+
+    /**
+     * Create a new GSC_RequestError instance.
+     *
+     * @param GSC_Errors $errors The errors parsed from the response.
+     * @author dhermes@google.com
+     **/
+    function __construct($errors)
+    {
+        $this->errors = $errors;
+    }
+
+    /**
+     * Return the string value of the exception, containing the XML.
+     *
+     * @return string The value of the XML in the error.
+     * @author dhermes@google.com
+     **/
+    function __toString()
+    {
+        return $this->errors->toXML();
+    }
+
+}
 
 
 /**
@@ -740,12 +782,12 @@ class GSC_Client
     /**
      * Check that this client has been authorized and has a token.
      *
-     * @throws _GSC_ClientError if there is no token.
+     * @throws GSC_ClientError if there is no token.
      * @return void
      */
     private function checkToken() {
         if ($this->token == null) {
-            throw new _GSC_ClientError('Client is not authenticated.');
+            throw new GSC_ClientError('Client is not authenticated.');
         }
     }
 
@@ -759,7 +801,7 @@ class GSC_Client
      * @return void
      **/
     public function login($email, $password) {
-        $this->token = _GSC_ClientLoginToken::login($email, $password);
+        $this->token = GSC_ClientLoginToken::login($email, $password);
     }
 
     /**
@@ -771,8 +813,8 @@ class GSC_Client
      * @return void
      **/
     public function clientLogin($email, $password, $userAgent) {
-        $this->token = _GSC_ClientLoginToken::login($email, $password,
-                                                    $userAgent);
+        $this->token = GSC_ClientLoginToken::login($email, $password,
+                                                   $userAgent);
     }
 
     /**
@@ -784,8 +826,8 @@ class GSC_Client
      * @return void
      **/
     public function setOAuth2Token($clientId, $clientSecret, $userAgent) {
-        $this->token = new _GSC_OAuth2Token($clientId, $clientSecret,
-                                            $userAgent);
+        $this->token = new GSC_OAuth2Token($clientId, $clientSecret,
+                                           $userAgent);
     }
 
     /**
@@ -809,7 +851,8 @@ class GSC_Client
      * @param string $performanceEnd The end date (inclusive) of click data
      *                               returned. Should be represented as
      *                               YYYY-MM-DD; not appended if left as None.
-     * @return GSC_ProductList or GSC_Errors parsed from the response.
+     * @return GSC_ProductList parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function getProducts($maxResults=null, $startToken=null,
                                 $performanceStart=null, $performanceEnd=null) {
@@ -844,7 +887,8 @@ class GSC_Client
      * Get a product from a link.
      *
      * @param string $link The edit link for the product.
-     * @return GSC_Product or GSC_Errors parsed from the response.
+     * @return GSC_Product parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function getFromLink($link) {
         $resp = _GSC_Http::get(
@@ -860,7 +904,8 @@ class GSC_Client
      * @param string $id The product id.
      * @param string $country The country specific to the product.
      * @param string $language The language specific to the product.
-     * @return GSC_Product or GSC_Errors parsed from the response.
+     * @return GSC_Product parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function getProduct($id, $country, $language) {
         $link = $this->getProductUri($id, $country, $language);
@@ -875,7 +920,8 @@ class GSC_Client
      *                          included. Defaults to false.
      * @param boolean $dryRun A boolean to determine if the dry-run should be
      *                        included. Defaults to false.
-     * @return GSC_Product or GSC_Errors parsed from the response.
+     * @return GSC_Product parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function insertProduct($product, $warnings=false, $dryRun=false) {
         $feedUri = $this->appendQueryParams(
@@ -901,7 +947,8 @@ class GSC_Client
      *                          included. Defaults to false.
      * @param boolean $dryRun A boolean to determine if the dry-run should be
      *                        included. Defaults to false.
-     * @return GSC_Product or GSC_Errors parsed from the response.
+     * @return GSC_Product parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function updateProduct($product, $warnings=false, $dryRun=false) {
         $productUri = $this->appendQueryParams(
@@ -922,7 +969,7 @@ class GSC_Client
      * Send a delete request to a link.
      *
      * @param string $link The edit link for the product.
-     * @throws _GSC_ClientError if the response code is not 200.
+     * @throws GSC_ClientError if the response code is not 200.
      * @return void
      */
     public function deleteFromLink($link) {
@@ -932,7 +979,7 @@ class GSC_Client
           );
 
         if ($resp->code != 200) {
-            throw new _GSC_ClientError('Delete request failed.');
+            throw new GSC_ClientError('Delete request failed.');
         }
     }
 
@@ -945,7 +992,7 @@ class GSC_Client
      *                          included. Defaults to false.
      * @param boolean $dryRun A boolean to determine if the dry-run should be
      *                        included. Defaults to false.
-     * @throws _GSC_ClientError if the response code is not 200.
+     * @throws GSC_ClientError if the response code is not 200.
      * @return void
      */
     public function deleteProduct($product, $warnings=false, $dryRun=false) {
@@ -1051,7 +1098,8 @@ class GSC_Client
      *
      * @param string $maxResults The max results desired. Defaults to null.
      * @param string $startIndex The start index for the query. Defaults to null.
-     * @return GSC_ManagedAccountList or GSC_Errors parsed from the response.
+     * @return GSC_ManagedAccountList parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function getAccounts($maxResults=null, $startIndex=null) {
         $accountsUri = $this->getManagedAccountsUri();
@@ -1079,7 +1127,8 @@ class GSC_Client
      * Get a subaccount.
      *
      * @param string $accountId The account id.
-     * @return GSC_ManagedAccount or GSC_Errors parsed from the response.
+     * @return GSC_ManagedAccount parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function getAccount($accountId) {
         $resp = _GSC_Http::get(
@@ -1109,7 +1158,8 @@ class GSC_Client
      *
      * @param GSC_ManagedAccount $account The account to update.
      *                                    Must have rel='edit' set.
-     * @return GSC_ManagedAccount or GSC_Errors parsed from the response.
+     * @return GSC_ManagedAccount parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function updateAccount($account) {
         $resp = _GSC_Http::put(
@@ -1125,7 +1175,7 @@ class GSC_Client
      *
      * @param GSC_ManagedAccount $account The account to delete.
      *                                    Must have rel='edit' set.
-     * @throws _GSC_ClientError if the response code is not 200.
+     * @throws GSC_ClientError if the response code is not 200.
      * @return void
      */
     public function deleteAccount($account) {
@@ -1135,7 +1185,8 @@ class GSC_Client
     /**
      * Get all datafeeds.
      *
-     * @return GSC_DatafeedList or GSC_Errors parsed from the response.
+     * @return GSC_DatafeedList parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function getDatafeeds() {
         $resp = _GSC_Http::get(
@@ -1149,7 +1200,8 @@ class GSC_Client
      * Get a datafeed.
      *
      * @param string $datafeedId The datafeed id.
-     * @return GSC_Datafeed or GSC_Errors parsed from the response.
+     * @return GSC_Datafeed parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function getDatafeed($datafeedId) {
         $resp = _GSC_Http::get(
@@ -1179,7 +1231,8 @@ class GSC_Client
      *
      * @param GSC_Datafeed $datafeed The datafeed to update.
      *                               Must have rel='edit' set.
-     * @return GSC_Datafeed or GSC_Errors parsed from the response.
+     * @return GSC_Datafeed parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
      */
     public function updateDatafeed($datafeed) {
         $resp = _GSC_Http::put(
@@ -1195,7 +1248,7 @@ class GSC_Client
      *
      * @param GSC_Datafeed $datafeed The datafeed to delete.
      *                               Must have rel='edit' set.
-     * @throws _GSC_ClientError if the response code is not 200.
+     * @throws GSC_ClientError if the response code is not 200.
      * @return void
      */
     public function deleteDatafeed($datafeed) {
@@ -2244,7 +2297,12 @@ class _GSC_AtomParser {
      *
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
-     * @throws _GSC_ParseError if xml is not an entry, feed or errors element.
+     * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
+     *                                          element, a GSC_RequestError
+     *                                          is thrown with the contents of
+     *                                          the XML. Otherwise, if the XML
+     *                                          is not a feed or entry, a
+     *                                          GSC_ParseError is thrown.
      **/
     public static function parse($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
@@ -2256,10 +2314,11 @@ class _GSC_AtomParser {
             return new GSC_ProductList($doc, $root);
         }
         else if ($root->tagName == 'errors') {
-            return new GSC_Errors($doc, $root);
+            $errors = new GSC_Errors($doc, $root);
+            throw new GSC_RequestError($errors);
         }
 
-        throw new _GSC_ParseError($xml);
+        throw new GSC_ParseError($xml);
     }
 
     /**
@@ -2267,7 +2326,12 @@ class _GSC_AtomParser {
      *
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
-     * @throws _GSC_ParseError if xml is not an entry, feed or errors element.
+     * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
+     *                                          element, a GSC_RequestError
+     *                                          is thrown with the contents of
+     *                                          the XML. Otherwise, if the XML
+     *                                          is not a feed or entry, a
+     *                                          GSC_ParseError is thrown.
      **/
     public static function parseManagedAccounts($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
@@ -2279,10 +2343,11 @@ class _GSC_AtomParser {
             return new GSC_ManagedAccountList($doc, $root);
         }
         else if ($root->tagName == 'errors') {
-            return new GSC_Errors($doc, $root);
+            $errors = new GSC_Errors($doc, $root);
+            throw new GSC_RequestError($errors);
         }
 
-        throw new _GSC_ParseError($xml);
+        throw new GSC_ParseError($xml);
     }
 
     /**
@@ -2290,7 +2355,12 @@ class _GSC_AtomParser {
      *
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
-     * @throws _GSC_ParseError if xml is not an entry, feed or errors element.
+     * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
+     *                                          element, a GSC_RequestError
+     *                                          is thrown with the contents of
+     *                                          the XML. Otherwise, if the XML
+     *                                          is not a feed or entry, a
+     *                                          GSC_ParseError is thrown.
      **/
     public static function parseDatafeeds($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
@@ -2302,10 +2372,11 @@ class _GSC_AtomParser {
             return new GSC_DatafeedList($doc, $root);
         }
         else if ($root->tagName == 'errors') {
-            return new GSC_Errors($doc, $root);
+            $errors = new GSC_Errors($doc, $root);
+            throw new GSC_RequestError($errors);
         }
 
-        throw new _GSC_ParseError($xml);
+        throw new GSC_ParseError($xml);
     }
 
 }
