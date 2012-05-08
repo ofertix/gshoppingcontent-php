@@ -488,14 +488,14 @@ class GSC_OAuth2Token extends _GSC_Token
      * Create a token from a blob.
      *
      * @param string $blob Blob containing token data.
-     * @return _GSC_OAuth2Token Token built from blob.
+     * @return GSC_OAuth2Token Token built from blob.
      * @author dhermes@google.com
      **/
     public function fromBlob($blob) {
         $tokenParts = explode('|', $blob);
 
         if (count($tokenParts) != 6) {
-            throw new _GSC_TokenError('Blob contains wrong number of parts.');
+            throw new GSC_TokenError('Blob contains wrong number of parts.');
         }
 
         $this->clientId = $tokenParts[0] ? $tokenParts[0] : null;
@@ -2356,11 +2356,11 @@ class _GSC_AtomParser {
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
      * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
-     *                                          element, a GSC_RequestError
-     *                                          is thrown with the contents of
-     *                                          the XML. Otherwise, if the XML
-     *                                          is not a feed or entry, a
-     *                                          GSC_ParseError is thrown.
+     *                                         element, a GSC_RequestError
+     *                                         is thrown with the contents of
+     *                                         the XML. Otherwise, if the XML
+     *                                         is not a feed or entry, a
+     *                                         GSC_ParseError is thrown.
      **/
     public static function parse($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
@@ -2385,11 +2385,11 @@ class _GSC_AtomParser {
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
      * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
-     *                                          element, a GSC_RequestError
-     *                                          is thrown with the contents of
-     *                                          the XML. Otherwise, if the XML
-     *                                          is not a feed or entry, a
-     *                                          GSC_ParseError is thrown.
+     *                                         element, a GSC_RequestError
+     *                                         is thrown with the contents of
+     *                                         the XML. Otherwise, if the XML
+     *                                         is not a feed or entry, a
+     *                                         GSC_ParseError is thrown.
      **/
     public static function parseManagedAccounts($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
@@ -2414,11 +2414,11 @@ class _GSC_AtomParser {
      * @param string $xml The XML to parse.
      * @return _GSC_AtomElement An Atom element appropriate to the XML.
      * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
-     *                                          element, a GSC_RequestError
-     *                                          is thrown with the contents of
-     *                                          the XML. Otherwise, if the XML
-     *                                          is not a feed or entry, a
-     *                                          GSC_ParseError is thrown.
+     *                                         element, a GSC_RequestError
+     *                                         is thrown with the contents of
+     *                                         the XML. Otherwise, if the XML
+     *                                         is not a feed or entry, a
+     *                                         GSC_ParseError is thrown.
      **/
     public static function parseDatafeeds($xml) {
         $doc = _GSC_AtomParser::_xmlToDOM($xml);
