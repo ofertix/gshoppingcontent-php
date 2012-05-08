@@ -424,6 +424,15 @@ class GSC_OAuth2Token extends _GSC_Token
     private $userAgent;
 
     /**
+     * Scope or whitespace-delimited set of scopes for authorizing against
+     * various services. This defaults to the scope for the Content API for
+     * Shopping.
+     *
+     * @var string
+     **/
+    public $scope;
+
+    /**
      * Token used to access user data.
      *
      * @var string
@@ -464,6 +473,7 @@ class GSC_OAuth2Token extends _GSC_Token
         $this->clientSecret = $clientSecret;
         $this->userAgent = $userAgent;
         $this->invalid = false;
+        $this->scope = OAUTH_SCOPE;
     }
 
     /**
@@ -586,7 +596,7 @@ class GSC_OAuth2Token extends _GSC_Token
             'response_type' => $responseType,
             'client_id' => $this->clientId,
             'redirect_uri' => $redirectUri,
-            'scope' => OAUTH_SCOPE,
+            'scope' => $this->scope,
             'approval_prompt' => $approvalPrompt,
             'access_type' => $accessType
         );
@@ -634,7 +644,7 @@ class GSC_OAuth2Token extends _GSC_Token
             'client_secret' => $this->clientSecret,
             'code' => $code,
             'redirect_uri' => $this->redirectUri,
-            'scope' => OAUTH_SCOPE
+            'scope' => $this->scope
         );
 
         $headers = array(
