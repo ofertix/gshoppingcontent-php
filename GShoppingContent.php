@@ -697,7 +697,7 @@ class GSC_OAuth2Token extends _GSC_Token
      * @return string The authorization token string to be sent with a request.
      **/
     protected function getTokenString() {
-        return 'OAuth ' . $this->accessToken;
+        return 'Bearer ' . $this->accessToken;
     }
 
     /**
