@@ -1919,6 +1919,24 @@ class _GSC_Tags {
     public static $reviews_url = array(_GSC_Ns::sc, 'reviews_url');
 
     /**
+     * <sc:adwords_account> element
+     *
+     * @var array
+     * @see GSC_ManagedAccount::addAdwordsAccount(),
+     *      GSC_ManagedAccount::clearAdwordsAccounts()
+     **/
+    public static $adwords_account = array(_GSC_Ns::sc, 'adwords_account');
+
+    /**
+     * <sc:adwords_accounts> element
+     *
+     * @var array
+     * @see GSC_ManagedAccount::addAdwordsAccount(),
+     *      GSC_ManagedAccount::clearAdwordsAccounts()
+     **/
+    public static $adwords_accounts = array(_GSC_Ns::sc, 'adwords_accounts');
+
+    /**
      * <sc:feed_file_name> element
      *
      * @var array
@@ -4439,6 +4457,34 @@ class GSC_ManagedAccount extends _GSC_AtomElement {
         }
 
         $el->setAttribute('href', $link);
+    }
+
+    /**
+     * Add an Adwords Account to the subaccount.
+     *
+     * @param string $adwordsAccountId The Adwords Account ID being added.
+     * @param string $status The status (active or inactive) of the account.
+     * @return DOMElement The element that was created.
+     **/
+    function addAdwordsAccount($adwordsAccountId, $status) {
+        $el = $this->getCreateFirst(_GSC_Tags::$adwords_accounts);
+        $child = $this->create(_GSC_Tags::$adwords_account, $adwordsAccountId);
+        $child->setAttribute('status', $status);
+        $el->appendChild($child);
+        return $child;
+    }
+
+    /**
+     * Clear all Adwords Accounts from the subaccount.
+     *
+     * First retrieves the sc:adwords_accounts element or creates one if it
+     * doesn't exist and then removes all sc:adwords_account children.
+     *
+     * @return void
+     **/
+    function clearAllAdwordsAccounts() {
+        $el = $this->getCreateFirst(_GSC_Tags::$adwords_accounts);
+        $this->deleteAll(_GSC_Tags::$adwords_account, $el);
     }
 
     /**
