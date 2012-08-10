@@ -815,7 +815,7 @@ class GSC_RequestError extends Exception
  *
  * @package GShoppingContent
  * @version 1.2
- * @copyright Google Inc, 2011
+ * @copyright Google Inc, 2012
  * @author afshar@google.com, dhermes@google.com
  **/
 class GSC_Client
@@ -1323,6 +1323,79 @@ class GSC_Client
     }
 
     /**
+     * Get all users.
+     *
+     * @return GSC_UserList parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
+     */
+    public function getUsers() {
+        $resp = _GSC_Http::get(
+            $this->getUsersUri(),
+            $this->token
+        );
+        return _GSC_AtomParser::parseUsers($resp->body);
+    }
+
+    /**
+     * Get a user.
+     *
+     * @param string $userEmail The email of a selected user.
+     * @return GSC_User parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
+     */
+    public function getUser($userEmail) {
+        $resp = _GSC_Http::get(
+            $this->getUsersUri($userEmail),
+            $this->token
+          );
+        return _GSC_AtomParser::parseUsers($resp->body);
+    }
+
+    /**
+     * Insert a user.
+     *
+     * @param GSC_User $user The user to insert.
+     * @return GSC_User The inserted user from the response.
+     */
+    public function insertUser($user) {
+        $resp = _GSC_Http::post(
+            $this->getUsersUri(),
+            $user->toXML(),
+            $this->token
+          );
+        return _GSC_AtomParser::parseUsers($resp->body);
+    }
+
+    /**
+     * Update a user.
+     *
+     * @param GSC_User $user The user to update.
+     *                       Must have rel='edit' set.
+     * @return GSC_User parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
+     */
+    public function updateUser($user) {
+        $resp = _GSC_Http::put(
+            $user->getEditLink(),
+            $user->toXML(),
+            $this->token
+          );
+        return _GSC_AtomParser::parseUsers($resp->body);
+    }
+
+    /**
+     * Delete a user.
+     *
+     * @param GSC_User $user The user to delete.
+     *                       Must have rel='edit' set.
+     * @throws GSC_ClientError if the response code is not 200.
+     * @return void
+     */
+    public function deleteUser($user) {
+        $this->deleteFromLink($user->getEditLink());
+    }
+
+    /**
      * Create a URI for the feed for this merchant.
      *
      * @return string The feed URI.
@@ -1383,6 +1456,21 @@ class GSC_Client
         $result = BASE . $this->merchantId . '/datafeeds/products';
         if ($accountId != null) {
             $result .= '/' . $accountId;
+        }
+        return $result;
+    }
+
+    /**
+     * Create a URI for the users feed for this merchant.
+     *
+     * @param string $userEmail The email of a selected user. Defaults to null.
+     * @return string The users URI.
+     **/
+    public function getUsersUri($userEmail=null) {
+        $result = BASE . $this->merchantId . '/users';
+
+        if ($userEmail != null) {
+            $result .= '/' . $userEmail;
         }
         return $result;
     }
@@ -2024,6 +2112,22 @@ class _GSC_Tags {
     public static $channel = array(_GSC_Ns::sc, 'channel');
 
     /**
+     * <sc:admin> element
+     *
+     * @var array
+     * @see GSC_User::setAdmin(), GSC_User::getAdmin()
+     **/
+    public static $admin = array(_GSC_Ns::sc, 'admin');
+
+    /**
+     * <sc:permission> element
+     *
+     * @var array
+     * @see GSC_User::addPermission(), GSC_User::clearAllPermissions()
+     **/
+    public static $permission = array(_GSC_Ns::sc, 'permission');
+
+    /**
      * <scp:price> element
      *
      * @var array
@@ -2456,6 +2560,35 @@ class _GSC_AtomParser {
         }
         else if ($root->tagName == 'feed') {
             return new GSC_DatafeedList($doc, $root);
+        }
+        else if ($root->tagName == 'errors') {
+            $errors = new GSC_Errors($doc, $root);
+            throw new GSC_RequestError($errors);
+        }
+
+        throw new GSC_ParseError($xml);
+    }
+
+    /**
+     * Parse some XML into our data model for the users feed.
+     *
+     * @param string $xml The XML to parse.
+     * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
+     *                                         element, a GSC_RequestError
+     *                                         is thrown with the contents of
+     *                                         the XML. Otherwise, if the XML
+     *                                         is not a feed or entry, a
+     *                                         GSC_ParseError is thrown.
+     **/
+    public static function parseUsers($xml) {
+        $doc = _GSC_AtomParser::_xmlToDOM($xml);
+        $root = $doc->documentElement;
+        if ($root->tagName == 'entry') {
+            return new GSC_User($doc, $root);
+        }
+        else if ($root->tagName == 'feed') {
+            return new GSC_UserList($doc, $root);
         }
         else if ($root->tagName == 'errors') {
             $errors = new GSC_Errors($doc, $root);
@@ -4883,6 +5016,118 @@ class GSC_DatafeedList extends _GSC_AtomElement {
             array_push($datafeeds, $datafeed);
         }
         return $datafeeds;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<feed '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
+             'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_User
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_User extends _GSC_AtomElement {
+    /**
+     * Get the admin status of the user.
+     *
+     * @return string The admin status of the user.
+     **/
+    function getAdmin() {
+        return $this->getFirstValue(_GSC_Tags::$admin);
+    }
+
+    /**
+     * Set the admin status of the user.
+     *
+     * @param string $admin The admin status to set.
+     * @return DOMElement The element that was changed.
+     **/
+    function setAdmin($admin) {
+        return $this->setFirstValue(_GSC_Tags::$admin, $admin);
+    }
+
+    /**
+     * Add a permission to the user.
+     *
+     * @param string $permission The permission to add.
+     * @param string $scope The scope of the permission.
+     * @return DOMElement The element that was created.
+     **/
+    function addPermission($permission, $scope) {
+        $el = $this->create(_GSC_Tags::$permission, $permission);
+        $el->setAttribute('scope', $scope);
+        $this->model->appendChild($el);
+        return $el;
+    }
+
+    /**
+     * Clear all the permissions from this user.
+     *
+     * @return void
+     **/
+    function clearAllPermissions() {
+        $this->deleteAll(_GSC_Tags::$permission);
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<entry '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_UserList
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_UserList extends _GSC_AtomElement {
+
+    /**
+     * Get the list of users.
+     *
+     * @return array List of GSC_User from the feed.
+     **/
+    public function getUsers() {
+        $list = $this->getAll(_GSC_Tags::$entry);
+        $count = $list->length;
+        $users = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $user = new GSC_User($this->doc, $child);
+            array_push($users, $user);
+        }
+        return $users;
     }
 
     /**
