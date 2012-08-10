@@ -3,7 +3,7 @@
 /**
  * PHP library for interacting with Google Content API for Shopping.
  *
- * Copyright 2011 Google, Inc
+ * Copyright 2012 Google, Inc
  *
  *   Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *   use this file except in compliance with the License.  You may obtain a copy
@@ -19,7 +19,7 @@
  *
  * @version 1.2
  * @author afshar@google.com, dhermes@google.com
- * @copyright Google Inc, 2011
+ * @copyright Google Inc, 2012
  * @package GShoppingContent
  * @example examples/GetProduct.php Getting a product
  * @example examples/GetProducts.php Getting a list of products
@@ -152,7 +152,7 @@ class _GSC_Response
  * @package GShoppingContent
  * @version 1.2
  * @author afshar@google.com, dhermes@google.com
- * @copyright Google Inc, 2011
+ * @copyright Google Inc, 2012
  **/
 class _GSC_Http
 {
@@ -1690,7 +1690,7 @@ class _GSC_Tags {
      * <app:edited> element
      *
      * @var array
-     * @see GSC_ManagedAccount::getEdited()
+     * @see _GSC_AtomElement::getEdited()
      **/
     public static $edited = array(_GSC_Ns::app, 'edited');
 
@@ -2624,9 +2624,8 @@ abstract class _GSC_AtomElement
     function deleteAll($tag, $parent=null) {
         $el = $parent ? $parent : $this->model;
         $list = $el->getElementsByTagNameNS($tag[0], $tag[1]);
-        $count = $list->length;
-        for($pos=0; $pos<$count; $pos++) {
-            $child = $list->item($pos);
+        while($list->length) {
+            $child = $list->item(0);
             $el->removeChild($child);
         }
     }
@@ -2958,7 +2957,7 @@ class GSC_Product extends _GSC_AtomElement {
         $el->setAttribute('name', $attributeName);
 
         if ($attributeType != null) {
-            $el->setAttribute('unit', $unit);
+            $el->setAttribute('type', $attributeType);
         }
 
         if ($unit != null) {
