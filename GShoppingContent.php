@@ -1861,7 +1861,8 @@ class _GSC_Tags {
      *
      * @var array
      * @see GSC_Product::getDatapoints(), GSC_Product::getDatapointClicks(),
-     *      GSC_Product::getDatapointDate()
+     *      GSC_Product::getDatapointDate(),
+     *      GSC_Product::getDatapointPaidClicks()
      **/
     public static $datapoint = array(_GSC_Ns::sc, 'datapoint');
 
@@ -3199,6 +3200,16 @@ class GSC_Product extends _GSC_AtomElement {
      **/
     public function getDatapointDate($datapoint) {
         return $datapoint->getAttribute('date');
+    }
+
+    /**
+     * Get the datapoint paid clicks.
+     *
+     * @param DOMElement $datapoint The DOM Element containing the datapoint.
+     * @return string The datapoint paid clicks.
+     **/
+    public function getDatapointPaidClicks($datapoint) {
+        return $datapoint->getAttribute('paid_clicks');
     }
 
     /**
