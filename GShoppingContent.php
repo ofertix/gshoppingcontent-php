@@ -159,7 +159,7 @@ class _GSC_Http
     /**
      * Make an unsigned HTTP GET request.
      *
-     * @param string $uri The URI to post to.
+     * @param string $uri The URI to request.
      * @return _GSC_Response The response to the request.
      **/
     public static function unsignedGet($uri) {
@@ -171,7 +171,7 @@ class _GSC_Http
     /**
      * Make an HTTP GET request with a Google Authorization header.
      *
-     * @param string $uri The URI to post to.
+     * @param string $uri The URI to request.
      * @param _GSC_Token $token The authorization token.
      * @return _GSC_Response The response to the request.
      **/
@@ -1446,6 +1446,56 @@ class GSC_Client
     }
 
     /**
+     * Get the data quality report for an individual account.
+     *
+     * @param array $secondaryAccountId The (optional) ID of a subaccount.
+     *                                  If not specified, the merchant ID will
+     *                                  be re-used.
+     * @return GSC_DataQualityEntry parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
+     */
+    public function getDataQualityEntry($secondaryAccountId=null) {
+        if ($secondaryAccountId == null) {
+          $secondaryAccountId = $this->merchantId;
+        }
+        $resp = _GSC_Http::get(
+            $this->getDataQualityUri($secondaryAccountId),
+            $this->token
+        );
+        return _GSC_AtomParser::parseDataQuality($resp->body);
+    }
+
+    /**
+     * Get the data quality feed.
+     *
+     * @param string $maxResults The max results desired. Defaults to null.
+     * @param string $startIndex The start index for the query. Defaults to null.
+     * @return GSC_DataQualityFeed parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
+     */
+    public function getDataQualityFeed($maxResults=null, $startIndex=null) {
+        $dataQualityUri = $this->getDataQualityUri();
+
+        $queryParams = array();
+        if ($maxResults != null) {
+            array_push($queryParams, 'max-results=' . $maxResults);
+        }
+        if ($startIndex != null) {
+            array_push($queryParams, 'start-index=' . $startIndex);
+        }
+
+        if (count($queryParams) > 0) {
+            $dataQualityUri .= '?' . join('&', $queryParams);
+        }
+
+        $resp = _GSC_Http::get(
+            $dataQualityUri,
+            $this->token
+          );
+        return _GSC_AtomParser::parseDataQuality($resp->body);
+    }
+
+    /**
      * Create a URI for the feed for this merchant.
      *
      * @return string The feed URI.
@@ -1543,6 +1593,21 @@ class GSC_Client
         }
         else if ($batch) {
             $result .= '/batch';
+        }
+        return $result;
+    }
+
+    /**
+     * Create a URI for the data quality feed for this merchant.
+     *
+     * @param string $secondaryAccountId The (optional) ID of a subaccount.
+     * @return string The data quality URI.
+     **/
+    public function getDataQualityUri($secondaryAccountId=null) {
+        $result = BASE . $this->merchantId . '/dataquality';
+
+        if ($secondaryAccountId != null) {
+            $result .= '/' . $secondaryAccountId;
         }
         return $result;
     }
@@ -2185,6 +2250,78 @@ class _GSC_Tags {
     public static $channel = array(_GSC_Ns::sc, 'channel');
 
     /**
+     * <sc:link> element
+     *
+     * @var array
+     * @see GSC_ExampleItem::getLink()
+     **/
+    public static $exampleItemLink = array(_GSC_Ns::sc, 'link');
+
+    /**
+     * <sc:title> element
+     *
+     * @var array
+     * @see GSC_ExampleItem::getTitle()
+     **/
+    public static $exampleItemTitle = array(_GSC_Ns::sc, 'title');
+
+    /**
+     * <sc:item_id> element
+     *
+     * @var array
+     * @see GSC_ExampleItem::getItemId()
+     **/
+    public static $item_id = array(_GSC_Ns::sc, 'item_id');
+
+    /**
+     * <sc:submitted_value> element
+     *
+     * @var array
+     * @see GSC_ExampleItem::getSubmittedValue()
+     **/
+    public static $submitted_value = array(_GSC_Ns::sc, 'submitted_value');
+
+    /**
+     * <sc:value_on_landing_page> element
+     *
+     * @var array
+     * @see GSC_ExampleItem::getValueOnLandingPage()
+     **/
+    public static $value_on_landing_page = array(_GSC_Ns::sc, 'value_on_landing_page');
+
+    /**
+     * <sc:example_item> element
+     *
+     * @var array
+     * @see GSC_Issue::getExampleItems()
+     **/
+    public static $example_item = array(_GSC_Ns::sc, 'example_item');
+
+    /**
+     * <sc:issue> element
+     *
+     * @var array
+     * @see GSC_IssueGroup::getIssues()
+     **/
+    public static $issue = array(_GSC_Ns::sc, 'issue');
+
+    /**
+     * <sc:issue_group> element
+     *
+     * @var array
+     * @see GSC_DataQualityEntry::getIssueGroups()
+     **/
+    public static $issue_group = array(_GSC_Ns::sc, 'issue_group');
+
+    /**
+     * <sc:issue_groups> element
+     *
+     * @var array
+     * @see GSC_DataQualityEntry::getIssueGroups()
+     **/
+    public static $issue_groups = array(_GSC_Ns::sc, 'issue_groups');
+
+    /**
      * <scp:sale_price> element
      *
      * @var array
@@ -2713,6 +2850,35 @@ class _GSC_AtomParser {
         }
         else if ($root->tagName == 'feed') {
             return new GSC_InventoryEntryList($doc, $root);
+        }
+        else if ($root->tagName == 'errors') {
+            $errors = new GSC_Errors($doc, $root);
+            throw new GSC_RequestError($errors);
+        }
+
+        throw new GSC_ParseError($xml);
+    }
+
+    /**
+     * Parse some XML into our data model for the data quality feed.
+     *
+     * @param string $xml The XML to parse.
+     * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
+     *                                         element, a GSC_RequestError
+     *                                         is thrown with the contents of
+     *                                         the XML. Otherwise, if the XML
+     *                                         is not a feed or entry, a
+     *                                         GSC_ParseError is thrown.
+     **/
+    public static function parseDataQuality($xml) {
+        $doc = _GSC_AtomParser::_xmlToDOM($xml);
+        $root = $doc->documentElement;
+        if ($root->tagName == 'entry') {
+            return new GSC_DataQualityEntry($doc, $root);
+        }
+        else if ($root->tagName == 'feed') {
+            return new GSC_DataQualityFeed($doc, $root);
         }
         else if ($root->tagName == 'errors') {
             $errors = new GSC_Errors($doc, $root);
@@ -5482,6 +5648,304 @@ class GSC_InventoryEntryList extends _GSC_AtomElement {
              'xmlns:batch="http://schemas.google.com/gdata/batch" '.
              'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
              'xmlns:app="http://www.w3.org/2007/app" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_ExampleItem
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_ExampleItem extends _GSC_AtomElement {
+    /**
+     * Get the item id of the example item.
+     *
+     * @return string The item id of the example item.
+     **/
+    function getItemId() {
+        return $this->getFirstValue(_GSC_Tags::$item_id);
+    }
+
+    /**
+     * Get the link of the example item.
+     *
+     * @return string The link of the example item.
+     **/
+    function getLink() {
+        return $this->getFirstValue(_GSC_Tags::$exampleItemLink);
+    }
+
+    /**
+     * Get the title of the example item.
+     *
+     * @return string The title of the example item.
+     **/
+    function getTitle() {
+        return $this->getFirstValue(_GSC_Tags::$exampleItemTitle);
+    }
+
+    /**
+     * Get the submitted value of the example item.
+     *
+     * @return string The submitted value of the example item.
+     **/
+    function getSubmittedValue() {
+        return $this->getFirstValue(_GSC_Tags::$submitted_value);
+    }
+
+    /**
+     * Get the value of the example item from the landing page.
+     *
+     * @return string The value of the example item from the landing page.
+     **/
+    function getValueOnLandingPage() {
+        return $this->getFirstValue(_GSC_Tags::$value_on_landing_page);
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<example_item '.
+             'xmlns="http://schemas.google.com/structuredcontent/2009" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_Issue
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_Issue extends _GSC_AtomElement {
+    /**
+     * Get the ID of the issue.
+     *
+     * @return string The ID of the issue.
+     **/
+    function getId() {
+        return $this->model->getAttribute('id');
+    }
+
+    /**
+     * Get the last checked of the issue.
+     *
+     * @return string The last checked of the issue.
+     **/
+    function getLastChecked() {
+        return $this->model->getAttribute('last_checked');
+    }
+
+    /**
+     * Get the number of items of the issue.
+     *
+     * @return string The number of items of the issue.
+     **/
+    function getNumItems() {
+        return $this->model->getAttribute('num_items');
+    }
+
+    /**
+     * Get the offending term of the issue.
+     *
+     * @return string The offending term of the issue.
+     **/
+    function getOffendingTerm() {
+        return $this->model->getAttribute('offending_term');
+    }
+
+    /**
+     * Get the example items contained in the issue.
+     *
+     * @return array The example items contained in the issue. All elements
+     *               in the list will be of type GSC_ExampleItem.
+     **/
+    function getExampleItems() {
+        $list = $this->getAll(_GSC_Tags::$example_item);
+        $count = $list->length;
+        $exampleItems = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $exampleItem = new GSC_ExampleItem($this->doc, $child);
+            array_push($exampleItems, $exampleItem);
+        }
+        return $exampleItems;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<issue '.
+             'xmlns="http://schemas.google.com/structuredcontent/2009" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_IssueGroup
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_IssueGroup extends _GSC_AtomElement {
+    /**
+     * Get the ID of the issue group.
+     *
+     * @return string The ID of the issue group.
+     **/
+    function getId() {
+        return $this->model->getAttribute('id');
+    }
+
+    /**
+     * Get the country of the issue group.
+     *
+     * @return string The country of the issue group.
+     **/
+    function getCountry() {
+        return $this->model->getAttribute('country');
+    }
+
+    /**
+     * Get the issues contained in the issue group.
+     *
+     * @return array The issues contained in the issue group. All elements
+     *               in the list will be of type GSC_Issue.
+     **/
+    function getIssues() {
+        $list = $this->getAll(_GSC_Tags::$issue);
+        $count = $list->length;
+        $issues = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $issue = new GSC_Issue($this->doc, $child);
+            array_push($issues, $issue);
+        }
+        return $issues;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<issue_group '.
+             'xmlns="http://schemas.google.com/structuredcontent/2009" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_DataQualityEntry
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_DataQualityEntry extends _GSC_AtomElement {
+    /**
+     * Get the issue groups contained in the data quality entry.
+     *
+     * @return array The issue groups contained in the data quality entry. All
+     *               elements in the list will be of type GSC_IssueGroup.
+     **/
+    function getIssueGroups() {
+        $issueGroupsElement = $this->getFirst(_GSC_Tags::$issue_groups);
+        $list = $this->getAll(_GSC_Tags::$issue_group, $issueGroupsElement);
+
+        $count = $list->length;
+        $issueGroups = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $issueGroup = new GSC_IssueGroup($this->doc, $child);
+            array_push($issueGroups, $issueGroup);
+        }
+        return $issueGroups;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<entry '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_DataQualityFeed
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_DataQualityFeed extends _GSC_AtomElement {
+
+    /**
+     * Get the list of data quality entries.
+     *
+     * @return array The list of data quality entries.
+     **/
+    public function getDataQualityEntries() {
+        $list = $this->getAll(_GSC_Tags::$entry);
+        $count = $list->length;
+        $entries = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $entry = new GSC_DataQualityEntry($this->doc, $child);
+            array_push($entries, $entry);
+        }
+        return $entries;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<feed '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
+             'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
              '/>';
         $this->doc->loadXML($s);
         return $this->doc->documentElement;
