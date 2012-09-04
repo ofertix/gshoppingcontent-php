@@ -16,7 +16,7 @@
  *   License for the specific language governing permissions and limitations
  *   under the License.
  *
- * @version 1.2
+ * @version 1.3
  * @author dhermes@google.com
  * @copyright Google Inc, 2011
  * @package GShoppingContent
