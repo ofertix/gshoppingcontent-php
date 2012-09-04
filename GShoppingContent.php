@@ -975,7 +975,7 @@ class GSC_Client
      * @throws GSC_RequestError if the response is an errors element.
      */
     public function getProduct($id, $country, $language) {
-        $link = $this->getProductUri($id, $country, $language);
+        $link = $this->getProductUri($id, $country, $language, 'online');
         return $this->getFromLink($link);
     }
 
@@ -1098,21 +1098,27 @@ class GSC_Client
     }
 
     /**
-     * Create a GSC_ProductList with a specified batch operation.
+     * Create a feed object with a specified batch operation on each element.
      *
-     * @param array $products The list of products to add in batch.
+     * @param array $entries The list of entries to add in batch.
      * @param string $operation The batch operation desired.
-     * @return GSC_ProductList The constructed batch feed.
+     * @return GSC_ProductList|GSC_InventoryEntryList The constructed batch feed.
      **/
-    public function _createBatchFeed($products, $operation) {
-        $productsBatch = new GSC_ProductList();
-
-        foreach ($products as $product) {
-            $product->setBatchOperation($operation);
-            $productsBatch->addProduct($product);
+    public function _createBatchFeed($entries, $operation, $feedType='product') {
+        if ($feedType == 'inventory') {
+          $entriesBatch = new GSC_InventoryEntryList();
+        }
+        else {
+          // fallback for all unknown as well as 'product'
+          $entriesBatch = new GSC_ProductList();
         }
 
-        return $productsBatch;
+        foreach ($entries as $entry) {
+            $entry->setBatchOperation($operation);
+            $entriesBatch->addEntry($entry);
+        }
+
+        return $entriesBatch;
     }
 
     /**
@@ -1396,6 +1402,50 @@ class GSC_Client
     }
 
     /**
+     * Update an inventory entry.
+     *
+     * @param GSC_InventoryEntry $entry The inventory entry to update.
+     *                                  Must have rel='edit' set.
+     * @return GSC_InventoryEntry parsed from the response.
+     * @throws GSC_RequestError if the response is an errors element.
+     */
+    public function updateInventoryEntry($entry) {
+        $resp = _GSC_Http::put(
+            $entry->getEditLink(),
+            $entry->toXML(),
+            $this->token
+          );
+        return _GSC_AtomParser::parseInventory($resp->body);
+    }
+
+    /**
+     * Update a list of inventory entries.
+     *
+     * Each entry must have rel='edit' set. To generate edit URI's for each product, first create
+     * a feed URI specific to the store:
+     * $storeBase = $client->getInventoryUri($storeId);
+     * then for each individual product, create an product specific URI using the base:
+     * $localProductUri = $client->getProductUri($id, $country, $language, 'local', $feedUri=$storeBase)
+     *
+     * Once you have a URI of this form, you can set it via:
+     * $entry->setEditLink($localProductUri);
+     *
+     * @param array $entries The list of inventory entries to update in batch.
+     * @return GSC_InventoryEntryList The returned results from the batch.
+     **/
+    public function updateInventoryFeed($entries) {
+        $entriesBatch = $this->_createBatchFeed($entries, 'update', 'inventory');
+
+        $resp = _GSC_Http::post(
+            $this->getInventoryUri(null, true),
+            $entriesBatch->toXML(),
+            $this->token
+        );
+
+        return _GSC_AtomParser::parseInventory($resp->body);
+    }
+
+    /**
      * Create a URI for the feed for this merchant.
      *
      * @return string The feed URI.
@@ -1413,10 +1463,14 @@ class GSC_Client
      * @param string $language The language specific to the product.
      * @return string The product URI.
      **/
-    public function getProductUri($id, $country, $language) {
+    public function getProductUri($id, $country, $language, $channel, $feedUri=null) {
+        if ($feedUri == null) {
+          $feedUri = $this->getFeedUri();
+        }
         return sprintf(
-            '%sonline:%s:%s:%s',
-            $this->getFeedUri(),
+            '%s%s:%s:%s:%s',
+            $feedUri,
+            $channel,
             $language,
             $country,
             $id
@@ -1471,6 +1525,24 @@ class GSC_Client
 
         if ($userEmail != null) {
             $result .= '/' . $userEmail;
+        }
+        return $result;
+    }
+
+    /**
+     * Create a URI for the users feed for this merchant.
+     *
+     * @param string $userEmail The email of a selected user. Defaults to null.
+     * @return string The users URI.
+     **/
+    public function getInventoryUri($storeCode=null, $batch=false) {
+        $result = BASE . $this->merchantId . '/inventory';
+
+        if ($storeCode != null) {
+            $result .= '/' . $storeCode . '/items/';
+        }
+        else if ($batch) {
+            $result .= '/batch';
         }
         return $result;
     }
@@ -1564,7 +1636,7 @@ class _GSC_Tags {
      * The <batch:id> tag.
      *
      * @var array
-     * @see GSC_Product::setBatchId(), GSC_Product::getBatchId()
+     * @see _GSC_AtomElement::setBatchId(), _GSC_AtomElement::getBatchId()
      **/
     public static $batchId = array(_GSC_Ns::batch, 'id');
 
@@ -1572,7 +1644,7 @@ class _GSC_Tags {
      * The <batch:interrupted> tag.
      *
      * @var array
-     * @see GSC_Product::getBatchInterruptedAttribute()
+     * @see _GSC_AtomElement::getBatchInterruptedAttribute()
      **/
     public static $interrupted = array(_GSC_Ns::batch, 'interrupted');
 
@@ -1580,7 +1652,7 @@ class _GSC_Tags {
      * The <batch:operation> tag.
      *
      * @var array
-     * @see GSC_Product::setBatchOperation(), GSC_Product::getBatchOperation()
+     * @see _GSC_AtomElement::setBatchOperation(), _GSC_AtomElement::getBatchOperation()
      **/
     public static $operation = array(_GSC_Ns::batch, 'operation');
 
@@ -1588,7 +1660,7 @@ class _GSC_Tags {
      * The <batch:status> tag.
      *
      * @var array
-     * @see GSC_Product::getBatchStatus(), GSC_Product::getBatchStatusReason()
+     * @see _GSC_AtomElement::getBatchStatus(), _GSC_AtomElement::getBatchStatusReason()
      **/
     public static $status = array(_GSC_Ns::batch, 'status');
 
@@ -2113,6 +2185,24 @@ class _GSC_Tags {
     public static $channel = array(_GSC_Ns::sc, 'channel');
 
     /**
+     * <scp:sale_price> element
+     *
+     * @var array
+     * @see GSC_InventoryEntry::setSalePrice(), GSC_InventoryEntry::getSalePrice(),
+     *      GSC_InventoryEntry::getSalePriceUnit()
+     **/
+    public static $sale_price = array(_GSC_Ns::scp, 'sale_price');
+
+    /**
+     * <scp:sale_price_effective_date> element
+     *
+     * @var array
+     * @see GSC_InventoryEntry::setSalePriceEffectiveDate(),
+     *      GSC_InventoryEntry::getSalePriceEffectiveDate()
+     **/
+    public static $sale_price_effective_date = array(_GSC_Ns::scp, 'sale_price_effective_date');
+
+    /**
      * <sc:admin> element
      *
      * @var array
@@ -2132,7 +2222,9 @@ class _GSC_Tags {
      * <scp:price> element
      *
      * @var array
-     * @see GSC_Product::setPrice(), GSC_Product::getPrice(), GSC_Product::getPriceUnit()
+     * @see GSC_Product::setPrice(), GSC_Product::getPrice(), GSC_Product::getPriceUnit(),
+     *      GSC_InventoryEntry::setPrice(), GSC_InventoryEntry::getPrice(),
+     *      GSC_InventoryEntry::getPriceUnit()
      **/
     public static $price = array(_GSC_Ns::scp, 'price');
 
@@ -2244,7 +2336,8 @@ class _GSC_Tags {
      * <scp:availability> element
      *
      * @var array
-     * @see GSC_Product::setAvailability(), GSC_Product::getAvailability()
+     * @see GSC_Product::setAvailability(), GSC_Product::getAvailability(),
+     *      GSC_InventoryEntry::setAvailability(), GSC_InventoryEntry::getAvailability()
      **/
     public static $availability = array(_GSC_Ns::scp, 'availability');
 
@@ -2349,7 +2442,8 @@ class _GSC_Tags {
      * <scp:quantity> element
      *
      * @var array
-     * @see GSC_Product::setQuantity(), GSC_Product::getQuantity()
+     * @see GSC_Product::setQuantity(), GSC_Product::getQuantity(),
+     *      GSC_InventoryEntry::setQuantity(), GSC_InventoryEntry::getQuantity()
      **/
     public static $quantity = array(_GSC_Ns::scp, 'quantity');
 
@@ -2590,6 +2684,35 @@ class _GSC_AtomParser {
         }
         else if ($root->tagName == 'feed') {
             return new GSC_UserList($doc, $root);
+        }
+        else if ($root->tagName == 'errors') {
+            $errors = new GSC_Errors($doc, $root);
+            throw new GSC_RequestError($errors);
+        }
+
+        throw new GSC_ParseError($xml);
+    }
+
+    /**
+     * Parse some XML into our data model for the users feed.
+     *
+     * @param string $xml The XML to parse.
+     * @return _GSC_AtomElement An Atom element appropriate to the XML.
+     * @throws GSC_ParseError|GSC_RequestError If the XML is a gd:errors
+     *                                         element, a GSC_RequestError
+     *                                         is thrown with the contents of
+     *                                         the XML. Otherwise, if the XML
+     *                                         is not a feed or entry, a
+     *                                         GSC_ParseError is thrown.
+     **/
+    public static function parseInventory($xml) {
+        $doc = _GSC_AtomParser::_xmlToDOM($xml);
+        $root = $doc->documentElement;
+        if ($root->tagName == 'entry') {
+            return new GSC_InventoryEntry($doc, $root);
+        }
+        else if ($root->tagName == 'feed') {
+            return new GSC_InventoryEntryList($doc, $root);
         }
         else if ($root->tagName == 'errors') {
             $errors = new GSC_Errors($doc, $root);
@@ -2956,6 +3079,95 @@ abstract class _GSC_AtomElement
      **/
     function getEdited() {
         return $this->getFirstValue(_GSC_Tags::$edited);
+    }
+
+    /**
+     * Get the batch id of the product.
+     *
+     * @return string The batch id of the product.
+     **/
+    function getBatchId() {
+        return $this->getFirstValue(_GSC_Tags::$batchId);
+    }
+
+    /**
+     * Set the batch id of the product.
+     *
+     * @param string $batchId The id to set.
+     * @return DOMElement The element that was changed.
+     **/
+    function setBatchId($batchId) {
+        return $this->setFirstValue(_GSC_Tags::$batchId, $batchId);
+    }
+
+    /**
+     * Get the desired attribute from the batch interrupted element.
+     *
+     * @param string $attribute The desired attribute from interrupted element.
+     *                          Possible values include 'reason', 'success',
+     *                          'failures' and 'parsed'.
+     * @return string The value of the attribute.
+     **/
+    function getBatchInterruptedAttribute($attribute) {
+        $el = $this->getFirst(_GSC_Tags::$interrupted);
+        if ($el) {
+            return $el->getAttribute($attribute);
+        }
+        else {
+            return '';
+        }
+    }
+
+    /**
+     * Get the batch operation type of the product.
+     *
+     * @return string The operation type of the product.
+     **/
+    function getBatchOperation() {
+        $el = $this->getFirst(_GSC_Tags::$operation);
+        return $el->getAttribute('type');
+    }
+
+    /**
+     * Set the batch operation type of the product.
+     *
+     * @param string $operation The operation to set.
+     * @return DOMElement The element that was changed.
+     **/
+    function setBatchOperation($operation) {
+        $el = $this->setFirstValue(_GSC_Tags::$operation, null);
+        $el->setAttribute('type', $operation);
+        return $el;
+    }
+
+    /**
+     * Get the batch status code.
+     *
+     * @return string The status code for this batch operation
+     **/
+    function getBatchStatus() {
+        $el = $this->getFirst(_GSC_Tags::$status);
+        if ($el) {
+            return $el->getAttribute('code');
+        }
+        else {
+            return '';
+        }
+    }
+
+    /**
+     * Get the batch status reason.
+     *
+     * @return string The status reason for this batch operation
+     **/
+    function getBatchStatusReason() {
+        $el = $this->getFirst(_GSC_Tags::$status);
+        if ($el) {
+            return $el->getAttribute('reason');
+        }
+        else {
+            return '';
+        }
     }
 
     /**
@@ -4238,95 +4450,6 @@ class GSC_Product extends _GSC_AtomElement {
     }
 
     /**
-     * Get the batch id of the product.
-     *
-     * @return string The batch id of the product.
-     **/
-    function getBatchId() {
-        return $this->getFirstValue(_GSC_Tags::$batchId);
-    }
-
-    /**
-     * Set the batch id of the product.
-     *
-     * @param string $batchId The id to set.
-     * @return DOMElement The element that was changed.
-     **/
-    function setBatchId($batchId) {
-        return $this->setFirstValue(_GSC_Tags::$batchId, $batchId);
-    }
-
-    /**
-     * Get the desired attribute from the batch interrupted element.
-     *
-     * @param string $attribute The desired attribute from interrupted element.
-     *                          Possible values include 'reason', 'success',
-     *                          'failures' and 'parsed'.
-     * @return string The value of the attribute.
-     **/
-    function getBatchInterruptedAttribute($attribute) {
-        $el = $this->getFirst(_GSC_Tags::$interrupted);
-        if ($el) {
-            return $el->getAttribute($attribute);
-        }
-        else {
-            return '';
-        }
-    }
-
-    /**
-     * Get the batch operation type of the product.
-     *
-     * @return string The operation type of the product.
-     **/
-    function getBatchOperation() {
-        $el = $this->getFirst(_GSC_Tags::$operation);
-        return $el->getAttribute('type');
-    }
-
-    /**
-     * Set the batch operation type of the product.
-     *
-     * @param string $operation The operation to set.
-     * @return DOMElement The element that was changed.
-     **/
-    function setBatchOperation($operation) {
-        $el = $this->setFirstValue(_GSC_Tags::$operation, null);
-        $el->setAttribute('type', $operation);
-        return $el;
-    }
-
-    /**
-     * Get the batch status code.
-     *
-     * @return string The status code for this batch operation
-     **/
-    function getBatchStatus() {
-        $el = $this->getFirst(_GSC_Tags::$status);
-        if ($el) {
-            return $el->getAttribute('code');
-        }
-        else {
-            return '';
-        }
-    }
-
-    /**
-     * Get the batch status reason.
-     *
-     * @return string The status reason for this batch operation
-     **/
-    function getBatchStatusReason() {
-        $el = $this->getFirst(_GSC_Tags::$status);
-        if ($el) {
-            return $el->getAttribute('reason');
-        }
-        else {
-            return '';
-        }
-    }
-
-    /**
      * Get the content tag containing batch errors.
      *
      * @return DOMElement The content tag containing batch errors. If
@@ -4400,7 +4523,7 @@ class GSC_ProductList extends _GSC_AtomElement {
      * @param GSC_Product $product The product to add to this list.
      * @return void
      **/
-    public function addProduct($product) {
+    public function addEntry($product) {
         $clone = $this->doc->importNode($product->model, true);
         $this->model->appendChild($clone);
     }
@@ -5152,6 +5275,213 @@ class GSC_UserList extends _GSC_AtomElement {
              'xmlns:app="http://www.w3.org/2007/app" '.
              'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
              'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_InventoryEntry
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_InventoryEntry extends _GSC_AtomElement {
+
+    /**
+     * Get the availability of the inventory entry.
+     *
+     * @return string The availability of the inventory entry.
+     **/
+    public function getAvailability() {
+        return $this->getFirstValue(_GSC_Tags::$availability);
+    }
+
+    /**
+     * Set the availability of the inventory entry.
+     *
+     * @param string $availability the availability to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setAvailability($availability) {
+        return $this->setFirstValue(_GSC_Tags::$availability, $availability);
+    }
+
+    /**
+     * Get the price of the inventory entry.
+     *
+     * @return string The price of the inventory entry.
+     **/
+    public function getPrice() {
+        return $this->getFirstValue(_GSC_Tags::$price);
+    }
+
+    /**
+     * Get the price currency of the inventory entry.
+     *
+     * @return string The price currency of the inventory entry.
+     **/
+    public function getPriceUnit() {
+        $el = $this->getFirst(_GSC_Tags::$price);
+        return $el->getAttribute('unit');
+    }
+
+    /**
+     * Set the price of the inventory entry.
+     *
+     * @param string $price The price to set.
+     * @param string $unit The currency of the price to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setPrice($price, $unit) {
+        $el = $this->setFirstValue(_GSC_Tags::$price, $price);
+        $el->setAttribute('unit', $unit);
+        return $el;
+    }
+
+    /**
+     * Get the quantity (inventory) of the inventory entry.
+     *
+     * @return string The quantity of the inventory entry.
+     **/
+    public function getQuantity() {
+        return $this->getFirstValue(_GSC_Tags::$quantity);
+    }
+
+    /**
+     * Set the quantity (inventory) of the inventory entry.
+     *
+     * @param string $quantity The quantity to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setQuantity($quantity) {
+        return $this->setFirstValue(_GSC_Tags::$quantity, $quantity);
+    }
+
+    /**
+     * Get the sale price of the inventory entry.
+     *
+     * @return string The sale price of the inventory entry.
+     **/
+    public function getSalePrice() {
+        return $this->getFirstValue(_GSC_Tags::$sale_price);
+    }
+
+    /**
+     * Get the sale price currency of the inventory entry.
+     *
+     * @return string The sale price currency of the inventory entry.
+     **/
+    public function getSalePriceUnit() {
+        $el = $this->getFirst(_GSC_Tags::$sale_price);
+        return $el->getAttribute('unit');
+    }
+
+    /**
+     * Set the sale price of the inventory entry.
+     *
+     * @param string $price The price to set.
+     * @param string $unit The currency of the price to set.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setSalePrice($price, $unit) {
+        $el = $this->setFirstValue(_GSC_Tags::$sale_price, $price);
+        $el->setAttribute('unit', $unit);
+        return $el;
+    }
+
+    /**
+     * Get the Sale Price Effective Date for the inventory entry.
+     *
+     * @return string The sale price effective date in YYYY-MM-DD.
+     **/
+    public function getSalePriceEffectiveDate() {
+        return $this->getFirstValue(_GSC_Tags::$sale_price_effective_date);
+    }
+
+    /**
+     * Set the Sale Price Effective Date for the inventory entry.
+     *
+     * @param string $date The date to set in YYYY-MM-DD format.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setSalePriceEffectiveDate($date) {
+        return $this->setFirstValue(_GSC_Tags::$sale_price_effective_date, $date);
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<entry '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:scp="http://schemas.google.com/structuredcontent/2009/products" '.
+             'xmlns:batch="http://schemas.google.com/gdata/batch" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
+             '/>';
+        $this->doc->loadXML($s);
+        return $this->doc->documentElement;
+    }
+}
+
+
+/**
+ * GSC_InventoryEntryList
+ *
+ * @package GShoppingContent
+ * @version 1.2
+ * @copyright Google Inc, 2012
+ * @author dhermes@google.com
+ **/
+class GSC_InventoryEntryList extends _GSC_AtomElement {
+
+    /**
+     * Add an inventory entry to this list.
+     *
+     * @param GSC_InventoryEntry $entry The entry to add to this list.
+     * @return void
+     **/
+    public function addEntry($entry) {
+        $clone = $this->doc->importNode($entry->model, true);
+        $this->model->appendChild($clone);
+    }
+
+    /**
+     * Get the list of inventory entries.
+     *
+     * @return array List of GSC_InventoryEntry from the feed.
+     **/
+    public function getInventoryEntries() {
+        $list = $this->getAll(_GSC_Tags::$entry);
+        $count = $list->length;
+        $users = array();
+        for($pos=0; $pos<$count; $pos++) {
+            $child = $list->item($pos);
+            $user = new GSC_InventoryEntry($this->doc, $child);
+            array_push($users, $user);
+        }
+        return $users;
+    }
+
+    /**
+     * Create the default model for this element
+     *
+     * @return DOMElement The newly created element.
+     **/
+    public function createModel() {
+        $s = '<feed '.
+             'xmlns="http://www.w3.org/2005/Atom" '.
+             'xmlns:sc="http://schemas.google.com/structuredcontent/2009" '.
+             'xmlns:scp="http://schemas.google.com/structuredcontent/2009/products" '.
+             'xmlns:batch="http://schemas.google.com/gdata/batch" '.
+             'xmlns:openSearch="http://a9.com/-/spec/opensearch/1.1/" '.
+             'xmlns:app="http://www.w3.org/2007/app" '.
              '/>';
         $this->doc->loadXML($s);
         return $this->doc->documentElement;
