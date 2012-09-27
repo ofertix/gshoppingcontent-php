@@ -43,7 +43,7 @@ $product->setCondition("new");
 $product->setBatchOperation("insert");
 
 $batch = new GSC_ProductList();
-$batch->addProduct($product);
+$batch->addEntry($product);
 
 // Finally send the data to the API
 $feed = $client->batch($batch);

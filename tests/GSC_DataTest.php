@@ -13,7 +13,7 @@ class GSC_TestProductCollection extends PHPUnit_Framework_TestCase {
         $l = new GSC_ProductList();
         $p = new GSC_Product();
         $p->setTitle('z');
-        $l->addProduct($p);
+        $l->addEntry($p);
         $this->assertContains('<title>z</title>', $l->toXML());
     }
 }

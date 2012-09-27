@@ -51,7 +51,7 @@ $editLink = $client->getProductUri($id, $country, $language);
 $dummyDeleteEntry->setAtomId($editLink);
 
 $batch = new GSC_ProductList();
-$batch->addProduct($dummyDeleteEntry);
+$batch->addEntry($dummyDeleteEntry);
 
 // Finally send the data to the API
 $feed = $client->batch($batch);
