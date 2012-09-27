@@ -43,7 +43,7 @@ echo('Inserted: ' . $product->getTitle() . "\n");
 $product->setPrice("20", "usd");
 $product->setBatchOperation("update");
 $batch = new GSC_ProductList();
-$batch->addProduct($product);
+$batch->addEntry($product);
 
 // Finally send the data to the API
 $feed = $client->batch($batch);
