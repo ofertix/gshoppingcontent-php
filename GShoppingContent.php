@@ -465,12 +465,14 @@ class GSC_OAuth2Token extends _GSC_Token
      *
      * @param string $clientId The client ID for the token.
      * @param string $clientSecret The client secret for the token.
+     * @param string $redirectUri The redirect URI.
      * @param string $userAgent The user agent. Describes application.
      **/
-    function __construct($clientId, $clientSecret, $userAgent)
+    function __construct($clientId, $clientSecret, $redirectUri, $userAgent)
     {
         $this->clientId = $clientId;
         $this->clientSecret = $clientSecret;
+        $this->redirectUri = $redirectUri;
         $this->userAgent = $userAgent;
         $this->invalid = false;
         $this->scope = OAUTH_SCOPE;
@@ -889,12 +891,13 @@ class GSC_Client
      *
      * @param string $clientId The client ID for the token.
      * @param string $clientSecret The client secret for the token.
+     * @param string $redirectUri The redirect URI.
      * @param string $userAgent The user agent. Describes application.
      * @return void
      **/
-    public function setOAuth2Token($clientId, $clientSecret, $userAgent) {
+    public function setOAuth2Token($clientId, $clientSecret, $redirectUri, $userAgent) {
         $this->token = new GSC_OAuth2Token($clientId, $clientSecret,
-                                           $userAgent);
+                                           $redirectUri, $userAgent);
     }
 
     /**
