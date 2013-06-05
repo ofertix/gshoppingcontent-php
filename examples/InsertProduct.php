@@ -40,10 +40,16 @@ $product->setTitle("Dijji Digital Camera");
 $product->setPrice("199.99", "usd");
 $product->setAdult("false");
 $product->setCondition("new");
+$product->setAvailability("in stock");
+$product->setEnergyEfficiencyClass("A+++");
+$product->setUnitPricingMeasure("1m");
+$product->setUnitPricingBaseMeasure("5");
+$product->setMerchantMultipackQuantity("5");
+$product->setIdentifierExists("true");
 
 // Finally send the data to the API
 $entry = $client->insertProduct($product);
-echo('Inserted: ' . $entry->getTitle() . "\n");
+echo('Inserted: ' . $entry->getIdentifierExists() . "\n");
 
 /**
  * Credentials - Enter your own values
@@ -53,9 +59,9 @@ echo('Inserted: ' . $entry->getTitle() . "\n");
 class Credentials {
     public static function get() {
         return array(
-            "merchantId" => "7842698",
-            "email" => "aafshar@gmail.com",
-            "password" => "subhanul",
+            "merchantId" => "9788973",
+            "email" => "burcuads@gmail.com",
+            "password" => "myroot1903",
         );
     }
 }

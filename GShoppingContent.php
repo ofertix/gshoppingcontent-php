@@ -17,10 +17,9 @@
  *   License for the specific language governing permissions and limitations
  *   under the License.
  *
- * @version 1.3
- * @author afshar@google.com, dhermes@google.com
- * @copyright Google Inc, 2012
+ * @author afshar@google.com, dhermes@google.com, jbd@google.com
  * @package GShoppingContent
+ * @version 1.5
  * @example examples/GetProduct.php Getting a product
  * @example examples/GetProducts.php Getting a list of products
  * @example examples/InsertProduct.php Inserting a product
@@ -2690,6 +2689,46 @@ class _GSC_Tags {
      * @see GSC_Product::setAdwordsQueryparam(), GSC_Product::getAdwordsQueryparam()
      **/
     public static $adwords_queryparam = array(_GSC_Ns::scp, 'adwords_queryparam');
+
+    /**
+     * <scp:identifier_exists> element
+     *
+     * @var array
+     * @see GSC_Product::setIdentifierExistsQueryParam(), GSC_Product::getIdentifierExistsQueryParam()
+     **/
+    public static $identifier_exists = array(_GSC_Ns::scp, 'identifier_exists');
+
+    /**
+     * <scp:unit_pricing_measure> element
+     *
+     * @var array
+     * @see GSC_Product::setUnitPricingMeasure(), GSC_Product::getUnitPricingMeasure()
+     **/
+    public static $unit_pricing_measure = array(_GSC_Ns::scp, 'unit_pricing_measure');
+
+     /**
+     * <scp:unit_pricing_base_measure> element
+     *
+     * @var array
+     * @see GSC_Product::setUnitPricingBaseMeasure(), GSC_Product::getUnitPricingBaseMeasure()
+     **/
+    public static $unit_pricing_base_measure = array(_GSC_Ns::scp, 'unit_pricing_base_measure');
+
+    /**
+     * <scp:energy_efficiency_class> element
+     *
+     * @var array
+     * @see GSC_Product::setEnergyEfficiencyClass(), GSC_Product::getEnergyEfficiencyClass()
+     **/
+    public static $energy_efficiency_class = array(_GSC_Ns::scp, 'energy_efficiency_class');
+
+    /**
+     * <scp:merchant_multipack_quantity> element
+     *
+     * @var array
+     * @see GSC_Product::setMerchantMultipackQuantity(), GSC_Product::getMerchantMultipackQuantity()
+     **/
+    public static $merchant_multipack_quantity = array(_GSC_Ns::scp, 'merchant_multipack_quantity');
 }
 
 
@@ -4388,6 +4427,101 @@ class GSC_Product extends _GSC_AtomElement {
      **/
     public function setPattern($pattern) {
         return $this->setFirstValue(_GSC_Tags::$pattern, $pattern);
+    }
+
+    /**
+     * Get whether identifier exists or not.
+     *
+     * @return DOMElement The element that was changed.
+     **/
+    public function getIdentifierExists() {
+        return $this->getFirstValue(_GSC_Tags::$identifier_exists);
+    }
+
+    /**
+     * Set whether identifier exists or not..
+     *
+     * @param string $value 'true' or 'false'.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setIdentifierExists($value) {
+        return $this->setFirstValue(_GSC_Tags::$identifier_exists, $value);
+    }
+
+    /**
+     * Get the unit pricing base measure.
+     *
+     * @return DOMElement The element that was changed.
+     **/
+    public function getUnitPricingMeasure() {
+        return $this->getFirstValue(_GSC_Tags::$unit_pricing_measure);
+    }
+
+    /**
+     * Set the unit pricing measure.
+     *
+     * @param string $value The unit pricing measure..
+     * @return DOMElement The element that was changed.
+     **/
+    public function setUnitPricingMeasure($value) {
+        return $this->setFirstValue(_GSC_Tags::$unit_pricing_measure, $value);
+    }
+
+    /**
+     * Get unit pricing base measure.
+     *
+     * @return DOMElement The element that was changed.
+     **/
+    public function getUnitPricingBaseMeasure() {
+        return $this->getFirstValue(_GSC_Tags::$unit_pricing_base_measure);
+    }
+
+    /**
+     * Set unit pricing base measure.
+     *
+     * @param string $value The unit pricing base measure..
+     * @return DOMElement The element that was changed.
+     **/
+    public function setUnitPricingBaseMeasure($value) {
+        return $this->setFirstValue(_GSC_Tags::$unit_pricing_base_measure, $value);
+    }
+
+    /**
+     * Get the energy efficiency class.
+     *
+     * @return DOMElement The element that was changed.
+     **/
+    public function getEnergyEfficiencyClass() {
+        return $this->getFirstValue(_GSC_Tags::$energy_efficiency_class);
+    }
+
+    /**
+     * Set the energy efficiency class.
+     *
+     * @param string $value The energy efficiency class.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setEnergyEfficiencyClass($value) {
+        return $this->setFirstValue(_GSC_Tags::$energy_efficiency_class, $value);
+    }
+
+    /**
+     * Get the merchant multipack quantity.
+     *
+     * @return DOMElement The element that was changed.
+     **/
+    public function getMerchantMultipackQuantity() {
+        return $this->getFirstValue(_GSC_Tags::$merchant_multipack_quantity);
+    }
+
+    /**
+     * Set the merchant multipack quantity.
+     *
+     * @param string $value The merchant multipack quantity.
+     * @return DOMElement The element that was changed.
+     **/
+    public function setMerchantMultipackQuantity($value) {
+        return $this->setFirstValue(_GSC_Tags::$merchant_multipack_quantity, $value);
     }
 
     /**
