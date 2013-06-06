@@ -2726,9 +2726,9 @@ class _GSC_Tags {
      * <scp:merchant_multipack_quantity> element
      *
      * @var array
-     * @see GSC_Product::setMerchantMultipackQuantity(), GSC_Product::getMerchantMultipackQuantity()
+     * @see GSC_Product::setMultipack(), GSC_Product::getMultipack()
      **/
-    public static $merchant_multipack_quantity = array(_GSC_Ns::scp, 'merchant_multipack_quantity');
+    public static $multipack = array(_GSC_Ns::scp, 'multipack');
 }
 
 
@@ -4510,8 +4510,8 @@ class GSC_Product extends _GSC_AtomElement {
      *
      * @return DOMElement The element that was changed.
      **/
-    public function getMerchantMultipackQuantity() {
-        return $this->getFirstValue(_GSC_Tags::$merchant_multipack_quantity);
+    public function getMultipack() {
+        return $this->getFirstValue(_GSC_Tags::$multipack);
     }
 
     /**
@@ -4520,8 +4520,8 @@ class GSC_Product extends _GSC_AtomElement {
      * @param string $value The merchant multipack quantity.
      * @return DOMElement The element that was changed.
      **/
-    public function setMerchantMultipackQuantity($value) {
-        return $this->setFirstValue(_GSC_Tags::$merchant_multipack_quantity, $value);
+    public function setMultipack($value) {
+        return $this->setFirstValue(_GSC_Tags::$multipack, $value);
     }
 
     /**
