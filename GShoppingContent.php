@@ -4451,10 +4451,20 @@ class GSC_Product extends _GSC_AtomElement {
     /**
      * Get the unit pricing base measure.
      *
-     * @return DOMElement The element that was changed.
+     * @return string The unit pricing base measure.
      **/
     public function getUnitPricingMeasure() {
         return $this->getFirstValue(_GSC_Tags::$unit_pricing_measure);
+    }
+
+    /**
+     * Get Get the unit of the unit pricing base measure.
+     *
+     * @return string The unit of the pricing base measure.
+     **/
+    public function getUnitPricingMeasureUnit() {
+        $el = $this->getFirst(_GSC_Tags::$unit_pricing_measure);
+        return $el->getAttribute('unit');
     }
 
     /**
@@ -4463,17 +4473,29 @@ class GSC_Product extends _GSC_AtomElement {
      * @param string $value The unit pricing measure..
      * @return DOMElement The element that was changed.
      **/
-    public function setUnitPricingMeasure($value) {
-        return $this->setFirstValue(_GSC_Tags::$unit_pricing_measure, $value);
+    public function setUnitPricingMeasure($value, $unit) {
+        $el = $this->setFirstValue(_GSC_Tags::$unit_pricing_measure, $value);
+        $el->setAttribute('unit', $unit);
+        return $el;
     }
 
     /**
      * Get unit pricing base measure.
      *
-     * @return DOMElement The element that was changed.
+     * @return string The unit pricing base measure.
      **/
     public function getUnitPricingBaseMeasure() {
         return $this->getFirstValue(_GSC_Tags::$unit_pricing_base_measure);
+    }
+
+    /**
+     * Get the unit of the unit pricing base measure.
+     *
+     * @return string The unit of the pricing base measure.
+     **/
+    public function getUnitPricingBaseMeasureUnit() {
+        $el = $this->getFirst(_GSC_Tags::$unit_pricing_base_measure);
+        return $el->getAttribute('unit');
     }
 
     /**
@@ -4482,14 +4504,16 @@ class GSC_Product extends _GSC_AtomElement {
      * @param string $value The unit pricing base measure..
      * @return DOMElement The element that was changed.
      **/
-    public function setUnitPricingBaseMeasure($value) {
-        return $this->setFirstValue(_GSC_Tags::$unit_pricing_base_measure, $value);
+    public function setUnitPricingBaseMeasure($value, $unit) {
+        $el = $this->setFirstValue(_GSC_Tags::$unit_pricing_base_measure, $value);
+        $el->setAttribute('unit', $unit);
+        return $el;
     }
 
     /**
      * Get the energy efficiency class.
      *
-     * @return DOMElement The element that was changed.
+     * @return string The energy efficiency class.
      **/
     public function getEnergyEfficiencyClass() {
         return $this->getFirstValue(_GSC_Tags::$energy_efficiency_class);
