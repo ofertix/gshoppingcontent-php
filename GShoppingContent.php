@@ -723,7 +723,7 @@ class GSC_OAuth2Token extends _GSC_Token
             $this->refresh();
 
             $newHeaders = array(
-                'Content-Type: application/x-www-form-urlencoded',
+                'Content-Type: application/atom+xml',
                 'Authorization: ' . $this->getTokenString()
             );
             curl_setopt($newCurlHandle, CURLOPT_HTTPHEADER, $newHeaders);
