@@ -2729,6 +2729,61 @@ class _GSC_Tags {
      * @see GSC_Product::setMultipack(), GSC_Product::getMultipack()
      **/
     public static $multipack = array(_GSC_Ns::scp, 'multipack');
+
+    /**
+     * <sc:fetch_schedule> element
+     *
+     * @var array
+     * @see GSC_Datafeed::getFetchDayOfMonth(),
+     *      GSC_Datafeed::setFetchDayOfMonth(),
+     *      GSC_Datafeed::getFetchUrl(),
+     *      GSC_Datafeed::getFetchUsername(),
+     *      GSC_Datafeed::getFetchPassword(),
+     *      GSC_Datafeed::setFetchUrl(),
+     *      GSC_Datafeed::getFetchHour(),
+     *      GSC_Datafeed::getFetchTimezone(),
+     *      GSC_Datafeed::setFetchHour(),
+     *      GSC_Datafeed::getFetchWeekday(),
+     *      GSC_Datafeed::setFetchWeekday()
+     **/
+    public static $fetchSchedule = array(_GSC_Ns::sc, 'fetch_schedule');
+
+    /**
+     * <sc:day_of_month> element
+     *
+     * @var array
+     * @see GSC_Datafeed::getFetchDayOfMonth(), GSC_Datafeed::setFetchDayOfMonth()
+     **/
+    public static $fetchDayOfMonth = array(_GSC_Ns::sc, 'day_of_month');
+
+    /**
+     * <sc:fetch_url> element
+     *
+     * @var array
+     * @see GSC_Datafeed::getFetchUrl(),
+     *      GSC_Datafeed::getFetchUsername(),
+     *      GSC_Datafeed::getFetchPassword(),
+     *      GSC_Datafeed::setFetchUrl()
+     **/
+    public static $fetchUrl = array(_GSC_Ns::sc, 'fetch_url');
+
+    /**
+     * <sc:hour> element
+     *
+     * @var array
+     * @see GSC_Datafeed::getFetchHour(),
+     *      GSC_Datafeed::getFetchTimezone(),
+     *      GSC_Datafeed::setFetchHour()
+     **/
+    public static $fetchHour = array(_GSC_Ns::sc, 'hour');
+
+    /**
+     * <sc:weekday> element
+     *
+     * @var array
+     * @see GSC_Datafeed::getFetchWeekday(), GSC_Datafeed::setFetchWeekday()
+     **/
+    public static $fetchWeekday = array(_GSC_Ns::sc, 'weekday');
 }
 
 
@@ -5433,6 +5488,182 @@ class GSC_Datafeed extends _GSC_AtomElement {
      **/
     function clearAllFeedDestinations() {
         $this->deleteAll(_GSC_Tags::$feed_destination);
+    }
+
+    /**
+     * Get the day of the month on which to fetch the file.
+     *
+     * @return string The day of the month.
+     **/
+    function getFetchDayOfMonth() {
+        $fetch_schedule = $this->getFirst(_GSC_Tags::$fetchSchedule);
+        if ($fetch_schedule == null) {
+            return null;
+        } else {
+            return $this->getFirstValue(_GSC_Tags::$fetchDayOfMonth, $fetch_schedule);
+        }
+    }
+
+    /**
+     * Set the day of the month on which to fetch the file.
+     *
+     * @param string $day_of_month The day of the month.
+     * @return DOMElement The element that was changed.
+     **/
+    function setFetchDayOfMonth($day_of_month) {
+        $fetch_schedule = $this->getCreateFirst(_GSC_Tags::$fetchSchedule);
+        return $this->setFirstValue(_GSC_Tags::$fetchDayOfMonth, $day_of_month, $fetch_schedule);
+    }
+
+    /**
+     * Get the url to fetch the file from.
+     *
+     * @return string The url of the file.
+     **/
+    function getFetchUrl() {
+        $fetch_schedule = $this->getFirst(_GSC_Tags::$fetchSchedule);
+        if ($fetch_schedule == null) {
+            return null;
+        } else {
+            return $this->getFirstValue(_GSC_Tags::$fetchUrl, $fetch_schedule);
+        }
+    }
+
+    /**
+     * Set the url to fetch the file from.
+     *
+     * @param string $fetch_url The url of the file.
+     * @param string $username The username to use when accessing the URL.
+     * @param string $password The password to use when accessing the URL.
+     * @return DOMElement The element that was changed.
+     **/
+    function setFetchUrl($fetch_url, $username=null, $password=null) {
+        $fetch_schedule = $this->getCreateFirst(_GSC_Tags::$fetchSchedule);
+        $el = $this->setFirstValue(_GSC_Tags::$fetchUrl, $fetch_url, $fetch_schedule);
+
+        if ($username != null) {
+            $el->setAttribute("username", $username);
+        }
+
+        if ($password != null) {
+            $el->setAttribute("password", $password);
+        }
+
+        return $el;
+    }
+
+    /**
+     * Get the password to use when fetching the file.
+     *
+     * @return string The password.
+     **/
+    function getFetchPassword() {
+        $fetch_schedule = $this->getFirst(_GSC_Tags::$fetchSchedule);
+        if ($fetch_schedule == null) {
+            return null;
+        } else {
+            $fetch_url = $this->getFirst(_GSC_Tags::$fetchUrl, $fetch_schedule);
+            if ($fetch_url == null) {
+                return null;
+            } else {
+                return $fetch_url->getAttribute('password');
+            }
+        }
+    }
+
+    /**
+     * Get the username to use when fetching the file.
+     *
+     * @return string The username.
+     **/
+    function getFetchUsername() {
+        $fetch_schedule = $this->getFirst(_GSC_Tags::$fetchSchedule);
+        if ($fetch_schedule == null) {
+            return null;
+        } else {
+            $fetch_url = $this->getFirst(_GSC_Tags::$fetchUrl, $fetch_schedule);
+            if ($fetch_url == null) {
+                return null;
+            } else {
+                return $fetch_url->getAttribute('username');
+            }
+        }
+    }
+
+    /**
+     * Get the hour to fetch the file.
+     *
+     * @return string The hour to fetch the file.
+     **/
+    function getFetchHour() {
+        $fetch_schedule = $this->getFirst(_GSC_Tags::$fetchSchedule);
+        if ($fetch_schedule == null) {
+            return null;
+        } else {
+            return $this->getFirstValue(_GSC_Tags::$fetchHour, $fetch_schedule);
+        }
+    }
+
+    /**
+     * Get the timezone in which the fetch time is specified.
+     *
+     * @return string The timezone.
+     **/
+    function getFetchTimezone() {
+        $fetch_schedule = $this->getFirst(_GSC_Tags::$fetchSchedule);
+        if ($fetch_schedule == null) {
+            return null;
+        } else {
+            $hour = $this->getFirst(_GSC_Tags::$fetchHour, $fetch_schedule);
+            if ($hour == null) {
+                return null;
+            } else {
+                return $hour->getAttribute('hour');
+            }
+        }
+    }
+
+    /**
+     * Set the hour to fetch the file.
+     *
+     * @param string $hour The hour to fetch the file.
+     * @param string $timezone The timezone in which the hour is specified.
+     * @return DOMElement The element that was changed.
+     **/
+    function setFetchHour($hour, $timezone=null) {
+        $fetch_schedule = $this->getCreateFirst(_GSC_Tags::$fetchSchedule);
+        $el = $this->setFirstValue(_GSC_Tags::$fetchHour, $hour, $fetch_schedule);
+
+        if ($timezone != null) {
+            $el->setAttribute("timezone", $timezone);
+        }
+
+        return $el;
+    }
+
+    /**
+     * Get the weekday on which to fetch the file.
+     *
+     * @return string The weekday.
+     **/
+    function getFetchWeekday() {
+        $fetch_schedule = $this->getFirst(_GSC_Tags::$fetchSchedule);
+        if ($fetch_schedule == null) {
+            return null;
+        } else {
+            return $this->getFirstValue(_GSC_Tags::$fetchWeekday, $fetch_schedule);
+        }
+    }
+
+    /**
+     * Set the weekday on which to fetch the file.
+     *
+     * @param string $weekday The weekday.
+     * @return DOMElement The element that was changed.
+     **/
+    function setFetchWeekday($weekday) {
+        $fetch_schedule = $this->getCreateFirst(_GSC_Tags::$fetchSchedule);
+        return $this->setFirstValue(_GSC_Tags::$fetchWeekday, $weekday, $fetch_schedule);
     }
 
     /**
