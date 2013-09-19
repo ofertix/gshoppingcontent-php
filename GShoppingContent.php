@@ -4825,8 +4825,7 @@ class GSC_Product extends _GSC_AtomElement {
     /**
      * Create the initial model when none is provided.
      *
-     * @return void
-     * @return DOMElement The element that was created.
+     * @return DOMElement The model created.
      **/
     public function createModel() {
         $s = '<entry '.
