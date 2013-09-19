@@ -17,6 +17,10 @@
  *   License for the specific language governing permissions and limitations
  *   under the License.
  *
+ * @author afshar@google.com
+ * @author dhermes@google.com
+ * @author jbd@google.com
+ * @author mscales@google.com
  * @package GShoppingContent
  * @version 1.6
  * @example examples/GetProduct.php Getting a product
