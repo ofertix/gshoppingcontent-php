@@ -3,7 +3,7 @@
 /**
  * PHP library for interacting with Google Content API for Shopping.
  *
- * Copyright 2012 Google, Inc
+ * Copyright 2013 Google, Inc
  *
  *   Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *   use this file except in compliance with the License.  You may obtain a copy
@@ -18,7 +18,7 @@
  *   under the License.
  *
  * @package GShoppingContent
- * @version 1.5
+ * @version 1.6
  * @example examples/GetProduct.php Getting a product
  * @example examples/GetProducts.php Getting a list of products
  * @example examples/InsertProduct.php Inserting a product
