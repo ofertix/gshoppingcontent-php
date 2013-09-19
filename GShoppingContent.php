@@ -17,7 +17,6 @@
  *   License for the specific language governing permissions and limitations
  *   under the License.
  *
- * @author afshar@google.com, dhermes@google.com, jbd@google.com
  * @package GShoppingContent
  * @version 1.5
  * @example examples/GetProduct.php Getting a product
@@ -95,8 +94,6 @@ const REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke';
  * Wraps the CURL response and information data of the response.
  *
  * @package GShoppingContent
- * @version 1.3
- * @author afshar@google.com, dhermes@google.com
  **/
 class _GSC_Response
 {
@@ -127,7 +124,6 @@ class _GSC_Response
      *
      * @param array $info The info result from CURL after making a request.
      * @param string $body The response body.
-     * @author afshar@google.com
      **/
     function __construct($info, $body)
     {
@@ -149,9 +145,6 @@ class _GSC_Response
  * statically. It maintains no state.
  *
  * @package GShoppingContent
- * @version 1.3
- * @author afshar@google.com, dhermes@google.com
- * @copyright Google Inc, 2012
  **/
 class _GSC_Http
 {
@@ -280,7 +273,6 @@ class _GSC_Http
  * Base class for token objects.
  *
  * @package GShoppingContent
- * @version 1.3
  **/
 abstract class _GSC_Token
 {
@@ -304,7 +296,6 @@ abstract class _GSC_Token
  * Handles making ClientLogin requests to authenticate and authorize.
  *
  * @package GShoppingContent
- * @version 1.3
  **/
 class GSC_ClientLoginToken extends _GSC_Token
 {
@@ -319,7 +310,6 @@ class GSC_ClientLoginToken extends _GSC_Token
      * Create a new GSC_ClientLoginToken instance.
      *
      * @param string $token The string authentication token.
-     * @author dhermes@google.com
      **/
     function __construct($token=null)
     {
@@ -344,7 +334,6 @@ class GSC_ClientLoginToken extends _GSC_Token
      * @param string $userAgent The user agent. Describes application.
      *                          Defaults to constant string USER_AGENT.
      * @return string The Auth token from ClientLogin.
-     * @author afshar@google.com, dhermes@google.com
      **/
     public static function login($email, $password, $userAgent=USER_AGENT)
     {
@@ -397,7 +386,6 @@ class GSC_ClientLoginToken extends _GSC_Token
  * Handles authenticating and authorizing with OAuth 2.0.
  *
  * @package GShoppingContent
- * @version 1.3
  **/
 class GSC_OAuth2Token extends _GSC_Token
 {
@@ -500,7 +488,6 @@ class GSC_OAuth2Token extends _GSC_Token
      *
      * @param string $blob Blob containing token data.
      * @return GSC_OAuth2Token Token built from blob.
-     * @author dhermes@google.com
      **/
     public function fromBlob($blob) {
         $tokenParts = explode('|', $blob);
@@ -740,9 +727,6 @@ class GSC_OAuth2Token extends _GSC_Token
  * Base class for client errors.
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author afshar@google.com
  **/
 class GSC_ClientError extends Exception { }
 
@@ -751,9 +735,6 @@ class GSC_ClientError extends Exception { }
  * Base class for token errors.
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_TokenError extends Exception { }
 
@@ -762,9 +743,6 @@ class GSC_TokenError extends Exception { }
  * Base class for parse errors.
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_ParseError extends Exception { }
 
@@ -773,9 +751,6 @@ class GSC_ParseError extends Exception { }
  * Class for request errors.
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_RequestError extends Exception
 {
@@ -790,7 +765,6 @@ class GSC_RequestError extends Exception
      * Create a new GSC_RequestError instance.
      *
      * @param GSC_Errors $errors The errors parsed from the response.
-     * @author dhermes@google.com
      **/
     function __construct($errors)
     {
@@ -801,7 +775,6 @@ class GSC_RequestError extends Exception
      * Return the string value of the exception, containing the XML.
      *
      * @return string The value of the XML in the error.
-     * @author dhermes@google.com
      **/
     function __toString()
     {
@@ -815,9 +788,6 @@ class GSC_RequestError extends Exception
  * Client for making requests to the Google Content API for Shopping.
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author afshar@google.com, dhermes@google.com
  **/
 class GSC_Client
 {
@@ -840,7 +810,6 @@ class GSC_Client
      * Create a new client for the merchant.
      *
      * @return GSC_Client The newliy created client.
-     * @author afshar@google.com
      **/
     public function __construct($merchantId)
     {
@@ -1646,9 +1615,6 @@ class GSC_Client
  * Namespaces used by GSC
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author afshar@google.com, dhermes@google.com
 **/
 class _GSC_Ns {
     /**
@@ -1695,8 +1661,6 @@ class _GSC_Ns {
  * name'
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
 **/
 class _GSC_Tags {
     /**
@@ -2791,9 +2755,6 @@ class _GSC_Tags {
  * Atom Parser
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author afshar@google.com, dhermes@google.com
  **/
 class _GSC_AtomParser {
 
@@ -2997,9 +2958,6 @@ class _GSC_AtomParser {
  * $doc.
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author afshar@google.com, dhermes@google.com
  **/
 abstract class _GSC_AtomElement
 {
@@ -3479,9 +3437,6 @@ abstract class _GSC_AtomElement
  * GSC_Product
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author afshar@google.com, dhermes@google.com
  **/
 class GSC_Product extends _GSC_AtomElement {
 
@@ -4891,9 +4846,6 @@ class GSC_Product extends _GSC_AtomElement {
  * GSC_ProductList
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author afshar@google.com, dhermes@google.com
  **/
 class GSC_ProductList extends _GSC_AtomElement {
 
@@ -5002,9 +4954,6 @@ class GSC_ProductList extends _GSC_AtomElement {
  * GSC_ManagedAccount
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author dhermes@google.com
  **/
 class GSC_ManagedAccount extends _GSC_AtomElement {
 
@@ -5157,9 +5106,6 @@ class GSC_ManagedAccount extends _GSC_AtomElement {
  * GSC_ManagedAccountList
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author dhermes@google.com
  **/
 class GSC_ManagedAccountList extends _GSC_AtomElement {
 
@@ -5204,9 +5150,6 @@ class GSC_ManagedAccountList extends _GSC_AtomElement {
  * GSC_Datafeed
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author dhermes@google.com
  **/
 class GSC_Datafeed extends _GSC_AtomElement {
 
@@ -5687,9 +5630,6 @@ class GSC_Datafeed extends _GSC_AtomElement {
  * GSC_DatafeedList
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author dhermes@google.com
  **/
 class GSC_DatafeedList extends _GSC_AtomElement {
 
@@ -5732,9 +5672,6 @@ class GSC_DatafeedList extends _GSC_AtomElement {
  * GSC_User
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_User extends _GSC_AtomElement {
     /**
@@ -5799,9 +5736,6 @@ class GSC_User extends _GSC_AtomElement {
  * GSC_UserList
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_UserList extends _GSC_AtomElement {
 
@@ -5844,9 +5778,6 @@ class GSC_UserList extends _GSC_AtomElement {
  * GSC_InventoryEntry
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_InventoryEntry extends _GSC_AtomElement {
 
@@ -5993,9 +5924,6 @@ class GSC_InventoryEntry extends _GSC_AtomElement {
  * GSC_InventoryEntryList
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_InventoryEntryList extends _GSC_AtomElement {
 
@@ -6051,9 +5979,6 @@ class GSC_InventoryEntryList extends _GSC_AtomElement {
  * GSC_ExampleItem
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_ExampleItem extends _GSC_AtomElement {
     /**
@@ -6120,9 +6045,6 @@ class GSC_ExampleItem extends _GSC_AtomElement {
  * GSC_Issue
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_Issue extends _GSC_AtomElement {
     /**
@@ -6198,9 +6120,6 @@ class GSC_Issue extends _GSC_AtomElement {
  * GSC_IssueGroup
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_IssueGroup extends _GSC_AtomElement {
     /**
@@ -6258,9 +6177,6 @@ class GSC_IssueGroup extends _GSC_AtomElement {
  * GSC_DataQualityEntry
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_DataQualityEntry extends _GSC_AtomElement {
     /**
@@ -6304,9 +6220,6 @@ class GSC_DataQualityEntry extends _GSC_AtomElement {
  * GSC_DataQualityFeed
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2012
- * @author dhermes@google.com
  **/
 class GSC_DataQualityFeed extends _GSC_AtomElement {
 
@@ -6349,9 +6262,6 @@ class GSC_DataQualityFeed extends _GSC_AtomElement {
  * GSC_ErrorElement
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author dhermes@google.com
  **/
 class GSC_ErrorElement extends _GSC_AtomElement {
 
@@ -6431,9 +6341,6 @@ class GSC_ErrorElement extends _GSC_AtomElement {
  * GSC_Errors
  *
  * @package GShoppingContent
- * @version 1.3
- * @copyright Google Inc, 2011
- * @author dhermes@google.com
  **/
 class GSC_Errors extends _GSC_AtomElement {
 
