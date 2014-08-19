@@ -4,7 +4,7 @@
     "description":  "library for communicating with the Google Content API for Shopping. This API is used to upload your retail products to Google Shopping..",
     "keywords": ["gshoppingcontent"],
     "homepage": "https://github.com/ofertix/gshoppingcontent-php",
-    "license":  "Apache License, Version 2.0",
+    "license":  "Apache-2.0",
     "authors": [
         {
             "name": "Jose Luis Poveda",
