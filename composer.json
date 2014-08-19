@@ -1,7 +1,7 @@
 {
     "name": "ofertix/gshoppingcontent-php",
     "type": "library",
-    "description":  "library for communicating with the Google Content API for Shopping. This API is used to upload your retail products to Google Shopping..",
+    "description":  "Library for communicating with the Google Content API for Shopping. This API is used to upload your retail products to Google Shopping.",
     "keywords": ["gshoppingcontent"],
     "homepage": "https://github.com/ofertix/gshoppingcontent-php",
     "license":  "Apache-2.0",
