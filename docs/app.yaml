@@ -1,0 +1,16 @@
+application: gshoppingcontent-php
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+
+
+- url: /
+  static_files: html/index.html
+  upload: html
+
+- url: /(.+)
+  static_files: html/\1
+  upload: html
+
