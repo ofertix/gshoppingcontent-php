@@ -2769,7 +2769,7 @@ class _GSC_AtomParser {
      * @return DOMElement A DOM element appropriate to the XML.
      **/
     public static function _xmlToDOM($xml) {
-        $doc = new DOMDocument();
+        $doc = new \DOMDocument();
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
         $doc->loadXML($xml);
