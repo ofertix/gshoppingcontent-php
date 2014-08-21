@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PHP library for interacting with Google Content API for Shopping.
  *
@@ -45,6 +44,7 @@
  * @example examples/DeleteDatafeed.php Deleting a datafeed
  **/
 
+namespace GShoppingContent;
 
 /**
  * URI for ClientLogin requests.
