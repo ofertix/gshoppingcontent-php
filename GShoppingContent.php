@@ -732,7 +732,7 @@ class GSC_OAuth2Token extends _GSC_Token
  *
  * @package GShoppingContent
  **/
-class GSC_ClientError extends Exception { }
+class GSC_ClientError extends \Exception { }
 
 
 /**
@@ -740,7 +740,7 @@ class GSC_ClientError extends Exception { }
  *
  * @package GShoppingContent
  **/
-class GSC_TokenError extends Exception { }
+class GSC_TokenError extends \Exception { }
 
 
 /**
@@ -748,7 +748,7 @@ class GSC_TokenError extends Exception { }
  *
  * @package GShoppingContent
  **/
-class GSC_ParseError extends Exception { }
+class GSC_ParseError extends \Exception { }
 
 
 /**
@@ -756,7 +756,7 @@ class GSC_ParseError extends Exception { }
  *
  * @package GShoppingContent
  **/
-class GSC_RequestError extends Exception
+class GSC_RequestError extends \Exception
 {
     /**
      * Errors parsed from the response.
@@ -3401,7 +3401,7 @@ abstract class _GSC_AtomElement
      * @return DOMDocument The default DOM factory document.
      **/
     function createDoc() {
-        $doc = new DOMDocument();
+        $doc = new \DOMDocument();
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
         return $doc;
